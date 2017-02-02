@@ -1,0 +1,232 @@
+---
+title: "Group Name"
+author: "Nishanth Gandhidoss, Raghavendar Shankar, Mitul Shah"
+date: "2 February 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r include=FALSE}
+# installing the packages
+# Function to Install packages
+# checks the available.packages before
+installNewPackage <- function(packageName) {
+        if(packageName  %in% rownames(installed.packages()) == FALSE)
+        {
+                install.packages(packageName, repos = "http://cran.us.r-project.org", dependencies=TRUE)
+        }
+}
+
+```
+
+
+## Group Name
+
+* Nishanth Gandhidoss  
+* Raghavendar Shankar
+* Mitul Shah
+
+
+#### Question 1
+
+(20 points) Write your own general-purpose functions to perform min-max normalization and z-score normalization (using standard deviation or mean absolute deviation). Do not just use functions available in R, Python or Matlab. Think about how to ensure it generalizes. For example, in R will it work on vectors, matrices and data frames. In Matlab, will it work on vectors and matrices. For min-max normalization, typically you want to scale to [0; 1] (defaults), but you should be able to pass in other limits.
+
+The function minmaxNorm should take four arguments
+
+* **trData**- the training data (use to establish the data properties for normalizaiton)
+* **teData**- the testing data (if supplied) to also be normalized according the the same data properties
+* **minV**- minimum value of new range
+* **maxV**- maximum value of new range
+
+The function zscoreNorm should take three arguments
+
+* **trData**- the training data (use to establish the data properties for normalizaiton)
+* **teData**- the testing data (if supplied) to also be normalized according the the same data properties
+* **madFlag**- boolean flag if positive use mean absolute deviation instead of standard deviation
+
+
+```{r question1}
+
+```
+
+
+#### Question 2
+
+(8 points) Data Mining Book: 3.6(a-c)
+
+Report the normalized values in a table.
+
+
+```{r question2}
+
+```
+
+
+
+#### Question 3
+
+Load the Iris data set available from the UCI Machine Learning data repository, http://archive.ics.uci.edu/ml/.
+
+Using the data for petal length, answer the following questions:
+
+#### Question 3a
+
+(4 points) Use your min-max normalization function with a range [????1:0; 1:0], to what values would f1:95; 3:1; 5:68 and 6:2g transform?
+
+
+```{r question3a}
+
+```
+
+
+#### Question 3b
+
+(4 points) Use your z-score normalization function to determine what values f1:95, 3:1, 5:68, and 6:2g would transform to?
+
+
+```{r question3b}
+
+```
+
+
+#### Question 3c
+
+(2 points) Comment on which method is preferred for this data, and why?
+
+
+```{r question3c}
+
+```
+
+
+#### Question 4
+
+Consider the following data set of with 5 samples and 3 variables:
+
+Table here
+
+You have a new data point x = (1:25; 1:78; 3:01).
+
+#### Question 4a
+
+(5 points) Calculate and present the distance between the new data point and each of the points in the data set using Manhattan distance, Euclidean distance, Minkowski distance ( = 3), supremum distance, and cosine similarity.
+
+
+```{r question4a}
+
+```
+
+
+#### Question 4b
+
+(5 points) Normalize the data using min-max normalization to be between 0 and 1. What is the Euclidean distance between the new data point and x1; : : : ; x5.
+
+
+```{r question4b}
+
+```
+
+
+#### Question 5
+
+**K-means Clustering**
+
+Perform k-means clustering manually with k=2 on the example data given below of n = 8 samples over p = 2 features.
+
+Table here
+
+
+#### Question 5a
+
+(2 points) Plot the sample data.
+
+
+```{r question5a}
+
+```
+
+
+#### Question 5b
+
+(4 points) Assign samples to be the initial groupings given in the table. Compute and report the centroid for each cluster.
+
+```{r question5b}
+
+```
+
+
+#### Question 5c
+
+(4 points) Assign each sample to the centroid to which it is closest (Euclidean distance). Report the cluster labels for each observation.
+
+```{r question5c}
+
+```
+
+
+#### Question 5d
+
+(20 points) Repeat (b) and (c) until the clusters remain stable.
+
+
+```{r question5d}
+
+```
+
+
+#### Question 5e
+
+(2 points) Plot the sample data colored by cluster labeling and adding centroid points.
+
+
+```{r question5e}
+
+```
+
+
+#### Question 6
+
+**Hierarchical Clustering**
+
+Suppose you have 5 samples, for which the dissimilarity matrix is shown below:
+
+Matrix here
+
+That is, the distance between the first and second sample is 0.3; the distance between the first and fourth sample is 0.7.
+
+
+#### Question 6a
+
+(12 points) Trace running through hierarchical clustering manually with complete link- age and sketch the dendrogram. Estimate the heights in the dendrogram from the dissimilarity distances.
+
+
+```{r question6a}
+
+```
+
+
+#### Question 6b
+
+(12 points) Repeat (a), with single linkage clustering
+
+
+```{r question6b}
+
+```
+
+
+#### Question 6c
+
+(6 points) Use the dendrogram from (a) and (b), cut the dendrograms to form three clusters. Which samples are in each cluster?
+
+
+```{r question6c}
+
+```
+
+
+**End of assignemnt**
