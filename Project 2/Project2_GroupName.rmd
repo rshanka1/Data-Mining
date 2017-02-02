@@ -62,7 +62,8 @@ Report the normalized values in a table.
 
 
 ```{r question2}
-
+data("AirPassengers")
+summary(AirPassengers)
 ```
 
 
