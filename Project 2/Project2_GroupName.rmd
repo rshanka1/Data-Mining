@@ -62,8 +62,7 @@ Report the normalized values in a table.
 
 
 ```{r question2}
-data("AirPassengers")
-summary(AirPassengers)
+
 ```
 
 
@@ -118,7 +117,82 @@ You have a new data point x = (1:25; 1:78; 3:01).
 
 
 ```{r question4a}
+A <- c(1.4,1.8,1.3,0.9,1.5)
+B <- c(1.3,1.4,1.2,3.5,2.1)
+C <- c(2.9,3.2,2.9,3.1,3.3)
 
+dat <- cbind.data.frame(A,B,C)
+
+rownames(dat) <- c("x1","x2","x3","x4","x5")
+
+x <- rbind.data.frame(c(1.25,1.78,3.01))
+g <- rep(0,5)
+```
+```{r Manhattan Distance}
+Man_fun <- function(m,v){
+        for(i in 1:nrow(m)){
+                p <- rep(0,3)
+                for(j in 1:ncol(v)){
+                        
+                        p[j] <- abs(m[i,j] - v[1,j])
+                        
+                }
+                g[i] <- sum(p)
+        }
+        return(g)
+}
+
+Man_fun(dat,x)
+```
+```{r Euclidean Distance}
+Euc_fun <- function(m,v){
+        for(i in 1:nrow(m)){
+                p <- rep(0,3)
+                for(j in 1:ncol(v)){
+                       
+                        p[j] <- (m[i,j] - v[1,j])^2
+                        
+                }
+                g[i] <- sqrt(sum(p))
+        }
+        return(g)
+}
+
+Euc_fun(dat,x)
+```
+```{r Minkowski Distance}
+Mink_fun <- function(m,v,L){
+        for(i in 1:nrow(m)){
+                p <- rep(0,3)
+                for(j in 1:ncol(v)){
+                        
+                        p[j] <- (abs(m[i,j] - v[1,j]))^L
+                        
+                }
+                g[i] <- (sum(p))^(1/L)
+        }
+        return(g)
+}
+Mink_fun(dat,x,L = 3)
+```
+```{r Supremum Distance}
+Sup_fun <- function(m,v){
+        for(i in 1:nrow(m)){
+                p <- rep(0,3)
+                for(j in 1:ncol(v)){
+                        
+                        p[j] <- abs(m[i,j] - v[1,j])
+                        
+                }
+                g[i] <- max(p)
+        }
+        return(g)
+}
+
+Sup_fun(dat,x)
+```
+```{r Cosine Similarity}
+#crossprod(x, y)/sqrt(crossprod(x) * crossprod(y))
 ```
 
 
