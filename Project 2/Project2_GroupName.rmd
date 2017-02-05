@@ -127,14 +127,14 @@ getNormalized <- function(trData, teData, minV, maxV, madFlag, method) {
             result <- list(trResult)
         }
     } else if(method == "zscore"){
+        trMean <- mean(trData)
+        teMean <- mean(teData)
         if(!madFlag) {
-            trMean <- mean(trData)
             trSd <- sd(trData)
             for(i in 1:length(trData)) {
                 trResult[i] <- (trData[i] - trMean) / trSd 
             }
             if(!is.null(teData)) {
-                teMean <- mean(teData)
                 teSd <- sd(teData)
                 for(i in 1:length(teData)) {
                     teResult[[i]] <- (teData[i] - teMean) / teSd 
@@ -144,7 +144,11 @@ getNormalized <- function(trData, teData, minV, maxV, madFlag, method) {
                 result <- list(trResult)
             }
         } else {
-            
+            trMeanDev <- aad(trData)
+            teMeanDev <- aad(teData)
+            for(i in 1:length(trData)) {
+                trResult[i] <- (trData[i] - trMean) / trSd 
+            }
         }
     }
     result
