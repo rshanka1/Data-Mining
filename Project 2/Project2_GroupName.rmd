@@ -127,7 +127,25 @@ getNormalized <- function(trData, teData, minV, maxV, madFlag, method) {
             result <- list(trResult)
         }
     } else if(method == "zscore"){
-        
+        if(!madFlag) {
+            trMean <- mean(trData)
+            trSd <- sd(trData)
+            for(i in 1:length(trData)) {
+                trResult[i] <- (trData[i] - trMean) / trSd 
+            }
+            if(!is.null(teData)) {
+                teMean <- mean(teData)
+                teSd <- sd(teData)
+                for(i in 1:length(teData)) {
+                    teResult[[i]] <- (teData[i] - teMean) / teSd 
+                }
+                result <- append(list(trResult), list(teResult))
+            } else {
+                result <- list(trResult)
+            }
+        } else {
+            
+        }
     }
     result
 }
@@ -215,6 +233,12 @@ zscoreNorm <- function(trData = NULL, teData = NULL, madFlag = FALSE) {
     result
 }
 
+# zscoreNorm(c(200, 300, 400, 600,1000), NULL, FALSE)
+# zscoreNorm(c(200, 300, 400, 600,1000), c(43, 54, 32), FALSE)
+# zscoreNorm(longdat[1:250,], NULL, FALSE)
+# zscoreNorm(longdat[1:250,], longdat[251:321,], FALSE)
+# zscoreNorm(longmat[1:250,], NULL, FALSE)
+# zscoreNorm(longmat[1:250,], longmat[251:321,], FALSE)
 ```
 
 
