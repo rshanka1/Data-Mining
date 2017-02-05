@@ -64,7 +64,7 @@ longdat <- longdat[, c(-1, -2)]
 
 
 
-```{r question1}
+```{r question1(minmax)}
 # Check whether the two data is of same class
 isDataSameClass <- function(trData, teData) {
     if((class(trData) != class(teData)) & !is.null(teData)) {
@@ -88,7 +88,7 @@ prepColNames <- function(data) {
 }
 
 # Normalize train and test data in form vectors/column
-getNormalized <- function(trData, teData, minV, maxV, method) {
+getNormalized <- function(trData, teData, minV, maxV, madFlag, method) {
     
     if(!is.null(teData)) {
         if(!(is.numeric(trData)) | !is.numeric(teData)) {
@@ -126,20 +126,22 @@ getNormalized <- function(trData, teData, minV, maxV, method) {
         } else {
             result <- list(trResult)
         }
-    } 
+    } else if(method == "zscore"){
+        
+    }
     result
 }
 
 # Normalize train and test dataframe
-getNormalizedDF <- function(trData, teData, minV, maxV, method) {
+getNormalizedDF <- function(trData, teData, minV, maxV, madFlag, method) {
     trResultList <- list()
     teResultList <- list()
     for(i in 1:ncol(trData)) {
         if(!is.null(teData)) {
-            scaled <- getNormalized(trData[, i], teData[, i], minV, maxV, method)
+            scaled <- getNormalized(trData[, i], teData[, i], minV, maxV, madFlag, method)
             teResultList[[i]] <- scaled[2]
         } else {
-            scaled <- getNormalized(trData[, i], teData, minV, maxV, method)
+            scaled <- getNormalized(trData[, i], teData, minV, maxV, madFlag, method)
         }
         trResultList[[i]] <- scaled[1]
     }
@@ -162,15 +164,15 @@ minmaxNorm <- function(trData = NULL, teData = NULL, minV = NULL, maxV = NULL) {
         isMaxVGreater(minV, maxV)
         method <- "minmax"
         if(is.vector(trData)) {
-            result <- getNormalized(trData, teData, minV, maxV, method)
+            result <- getNormalized(trData, teData, minV, maxV, NULL, method)
         } else if(is.data.frame(trData)) {
-            result <- getNormalizedDF(trData, teData, minV, maxV, method)
+            result <- getNormalizedDF(trData, teData, minV, maxV, NULL, method)
         } else if(is.matrix(trData)) {
             if(is.null(teData)) {
-                result <- getNormalizedDF(as.data.frame(trData), teData, minV, maxV, method)
+                result <- getNormalizedDF(as.data.frame(trData), teData, minV, maxV, NULL, method)
             } else {
                 result <- getNormalizedDF(as.data.frame(trData), 
-                                                as.data.frame(teData), minV, maxV, method)
+                                                as.data.frame(teData), minV, maxV, NULL, method)
             }
         }
     } else {
@@ -179,12 +181,40 @@ minmaxNorm <- function(trData = NULL, teData = NULL, minV = NULL, maxV = NULL) {
     result
 }
 
+
 # minmaxNorm(c(200, 300, 400, 600,1000), NULL, 0, 1)
 # minmaxNorm(c(200, 300, 400, 600,1000), c(43, 54, 32), 3, 5)
 # minmaxNorm(longdat[1:250,], NULL, 0, 1)
 # minmaxNorm(longdat[1:250,], longdat[251:321,], 2, 3)
 # minmaxNorm(longmat[1:250,], NULL, 0, 1)
 # minmaxNorm(longmat[1:250,], longmat[251:321,], 2, 3)
+```
+
+
+```{r question1(zscore)}
+# Function to compute zscore Normalization
+zscoreNorm <- function(trData = NULL, teData = NULL, madFlag = FALSE) {
+    if(!is.null(trData)) {
+        isDataSameClass(trData, teData)
+        method <- "zscore"
+        if(is.vector(trData)) {
+            result <- getNormalized(trData, teData, NULL, NULL, madFlag, method)
+        } else if(is.data.frame(trData)) {
+            result <- getNormalizedDF(trData, teData, NULL, NULL, madFlag, method)
+        } else if(is.matrix(trData)) {
+            if(is.null(teData)) {
+                result <- getNormalizedDF(as.data.frame(trData), teData, NULL, NULL, madFlag, method)
+            } else {
+                result <- getNormalizedDF(as.data.frame(trData), 
+                                                as.data.frame(teData), NULL, NULL, madFlag, method)
+            }
+        }
+    } else {
+        stop("Train data is required and cannot be NULL...")
+    }
+    result
+}
+
 ```
 
 
