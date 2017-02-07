@@ -295,16 +295,7 @@ Using the data for petal length, answer the following questions:
 
 Consider the following data set of with 5 samples and 3 variables:
 
-Table here
-
-You have a new data point x = (1:25; 1:78; 3:01).
-
-#### Question 4 a
-
-(5 points) Calculate and present the distance between the new data point and each of the points in the data set using Manhattan distance, Euclidean distance, Minkowski distance ( = 3), supremum distance, and cosine similarity.
-
-
-```{r question4a}
+```{r}
 A <- c(1.4,1.8,1.3,0.9,1.5)
 B <- c(1.3,1.4,1.2,3.5,2.1)
 C <- c(2.9,3.2,2.9,3.1,3.3)
@@ -312,8 +303,20 @@ C <- c(2.9,3.2,2.9,3.1,3.3)
 dat <- cbind.data.frame(A,B,C)
 
 rownames(dat) <- c("x1","x2","x3","x4","x5")
+```
 
+You have a new data point x = (1:25; 1:78; 3:01).
+```{r}
 x <- rbind.data.frame(c(1.25,1.78,3.01))
+```
+
+
+#### Question 4 a
+
+(5 points) Calculate and present the distance between the new data point and each of the points in the data set using Manhattan distance, Euclidean distance, Minkowski distance ( = 3), supremum distance, and cosine similarity.
+
+
+```{r question4a}
 g <- rep(0,5)
 ```
 ```{r Manhattan Distance}
