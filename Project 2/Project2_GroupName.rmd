@@ -303,6 +303,7 @@ C <- c(2.9,3.2,2.9,3.1,3.3)
 dat <- cbind.data.frame(A,B,C)
 
 rownames(dat) <- c("x1","x2","x3","x4","x5")
+dat
 ```
 
 You have a new data point x = (1:25; 1:78; 3:01).
@@ -399,6 +400,7 @@ Sup_fun(dat,x)
 ```{r question4b}
 #min-max normalization for the data
 dat1 <- data.frame(minmaxNorm(dat,NULL,0,1))
+dat1
 ```
 
 ```{r}
