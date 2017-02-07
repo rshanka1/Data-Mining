@@ -317,6 +317,7 @@ x <- rbind.data.frame(c(1.25,1.78,3.01))
 g <- rep(0,5)
 ```
 ```{r Manhattan Distance}
+# Function to compute Manhattan Distance
 Man_fun <- function(m,v){
         for(i in 1:nrow(m)){
                 p <- rep(0,3)
@@ -333,6 +334,7 @@ Man_fun <- function(m,v){
 Man_fun(dat,x)
 ```
 ```{r Euclidean Distance}
+# Function to compute Euclidean Distance
 Euc_fun <- function(m,v){
         for(i in 1:nrow(m)){
                 p <- rep(0,3)
@@ -349,6 +351,7 @@ Euc_fun <- function(m,v){
 Euc_fun(dat,x)
 ```
 ```{r Minkowski Distance}
+# Function to compute Minkowski distance
 Mink_fun <- function(m,v,L){
         for(i in 1:nrow(m)){
                 p <- rep(0,3)
@@ -364,6 +367,7 @@ Mink_fun <- function(m,v,L){
 Mink_fun(dat,x,L = 3)
 ```
 ```{r Supremum Distance}
+# Function to compute supremum distance
 Sup_fun <- function(m,v){
         for(i in 1:nrow(m)){
                 p <- rep(0,3)
