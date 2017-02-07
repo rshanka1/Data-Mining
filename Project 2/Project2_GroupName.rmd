@@ -394,7 +394,13 @@ Sup_fun(dat,x)
 
 
 ```{r question4b}
+#min-max normalization for the data
+dat1 <- data.frame(minmaxNorm(dat,NULL,0,1))
+```
 
+```{r}
+# Euclidean Distance
+Euc_fun(dat1,x)
 ```
 
 
