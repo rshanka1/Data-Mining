@@ -148,9 +148,8 @@ getNormalized <- function(trData, teData, minV, maxV, madFlag, method) {
                 trResult[i] <- (trData[i] - trMean) / trMeanDev 
             }
             if(!is.null(teData)) {
-                teMeanDev <- aad(teData)
                 for(i in 1:length(teData)) {
-                    teResult[[i]] <- (teData[i] - teMean) / teMeanDev 
+                    teResult[[i]] <- (teData[i] - trMean) / trMeanDev 
                 }
                 result <- append(list(trResult), list(teResult))
             } else {
@@ -280,17 +279,31 @@ Using the data for petal length, answer the following questions:
 
 
 ```{r question3a}
+# Reading the data 
+destfile <- "data/iris.csv"
 
+# checking whether the file already exists or not
+if(!file.exists(destfile)) {
+    iris <- read.csv(url("http://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"), col.names = c("sepal.length", "sepal.width", "petal.length", "petal.width", "class"), header = F)
+    write.csv(iris, file = "data/iris.csv")
+} else {
+    iris <- read.csv("data/iris.csv", header = T)
+}
+
+dataQ3a <- c(1.95, 3.1, 5.68, 6.2)
+result <- minmaxNorm(iris$petal.length, dataQ3a, -1, 1)
+result
 ```
 
 
 #### Question 3 b
 
-(4 points) Use your z-score normalization function to determine what values f1:95, 3:1, 5:68, and 6:2g would transform to?
+(4 points) Use your z-score normalization function to determine what values {1.95, 3.1, 5.68, and 6.2} would transform to?
 
 
 ```{r question3b}
-
+result <- zscoreNorm(iris$petal.length, dataQ3a, TRUE)
+result
 ```
 
 
@@ -299,9 +312,7 @@ Using the data for petal length, answer the following questions:
 (2 points) Comment on which method is preferred for this data, and why?
 
 
-```{r question3c}
-
-```
+**Reasons**
 
 
 #### Question 4
