@@ -335,12 +335,12 @@ g <- rep(0,5)
 ```
 ```{r Manhattan Distance}
 # Function to compute Manhattan Distance
-Man_fun <- function(m,v){
-        for(i in 1:nrow(m)){
+manhattanDist <- function(data1,data2){
+        for(i in 1:nrow(data1)){
                 p <- rep(0,3)
-                for(j in 1:ncol(v)){
+                for(j in 1:ncol(data2)){
                         
-                        p[j] <- abs(m[i,j] - v[1,j])
+                        p[j] <- abs(data1[i,j] - data2[1,j])
                         
                 }
                 g[i] <- sum(p)
@@ -348,16 +348,21 @@ Man_fun <- function(m,v){
         return(g)
 }
 
-Man_fun(dat,x)
+result <- manhattanDist(dat,x)
+manhattanRes <- data.frame(matrix(data = result,nrow = 5,ncol = 1,byrow = T),row.names = c("x1","x2","x3","x4","x5"))
+colnames(manhattanRes) <- c("x(Manhattan Distance)")
+
+manhattanRes
 ```
+
 ```{r Euclidean Distance}
 # Function to compute Euclidean Distance
-Euc_fun <- function(m,v){
-        for(i in 1:nrow(m)){
+euclideanDist <- function(data1,data2){
+        for(i in 1:nrow(data1)){
                 p <- rep(0,3)
-                for(j in 1:ncol(v)){
+                for(j in 1:ncol(data2)){
                        
-                        p[j] <- (m[i,j] - v[1,j])^2
+                        p[j] <- (data1[i,j] - data2[1,j])^2
                         
                 }
                 g[i] <- sqrt(sum(p))
@@ -365,32 +370,42 @@ Euc_fun <- function(m,v){
         return(g)
 }
 
-Euc_fun(dat,x)
+result <- euclideanDist(dat,x)
+euclideanRes <- data.frame(matrix(data = result,nrow = 5,ncol = 1,byrow = T),row.names = c("x1","x2","x3","x4","x5"))
+colnames(euclideanRes) <- c("x(Euclidean Distance)")
+
+euclideanRes
 ```
+
 ```{r Minkowski Distance}
 # Function to compute Minkowski distance
-Mink_fun <- function(m,v,L){
-        for(i in 1:nrow(m)){
+minkowskiDist <- function(data1,data2,lambda){
+        for(i in 1:nrow(data1)){
                 p <- rep(0,3)
-                for(j in 1:ncol(v)){
+                for(j in 1:ncol(data2)){
                         
-                        p[j] <- (abs(m[i,j] - v[1,j]))^L
+                        p[j] <- (abs(data1[i,j] - data2[1,j]))^lambda
                         
                 }
-                g[i] <- (sum(p))^(1/L)
+                g[i] <- (sum(p))^(1/lambda)
         }
         return(g)
 }
-Mink_fun(dat,x,L = 3)
+result <- minkowskiDist(dat,x,lambda = 3)
+minkowskiRes <- data.frame(matrix(data = result,nrow = 5,ncol = 1,byrow = T),row.names = c("x1","x2","x3","x4","x5"))
+colnames(minkowskiRes) <- c("x(Minkowski Distance)")
+
+minkowskiRes
 ```
+
 ```{r Supremum Distance}
 # Function to compute supremum distance
-Sup_fun <- function(m,v){
-        for(i in 1:nrow(m)){
+supremumDist <- function(data1,data2){
+        for(i in 1:nrow(data1)){
                 p <- rep(0,3)
-                for(j in 1:ncol(v)){
+                for(j in 1:ncol(data2)){
                         
-                        p[j] <- abs(m[i,j] - v[1,j])
+                        p[j] <- abs(data1[i,j] - data2[1,j])
                         
                 }
                 g[i] <- max(p)
@@ -398,8 +413,13 @@ Sup_fun <- function(m,v){
         return(g)
 }
 
-Sup_fun(dat,x)
+result <- supremumDist(dat,x)
+supremumRes <- data.frame(matrix(data = result,nrow = 5,ncol = 1,byrow = T),row.names = c("x1","x2","x3","x4","x5"))
+colnames(supremumRes) <- c("x(Supremum Distance)")
+
+supremumRes
 ```
+
 ```{r Cosine Similarity}
 #crossprod(x, y)/sqrt(crossprod(x) * crossprod(y))
 ```
@@ -418,7 +438,11 @@ dat1
 
 ```{r}
 # Euclidean Distance
-Euc_fun(dat1,x)
+result <- euclideanDist(dat1,x)
+euclideanRes <- data.frame(matrix(data = result,nrow = 5,ncol = 1,byrow = T),row.names = c("x1","x2","x3","x4","x5"))
+colnames(euclideanRes) <- c("x")
+
+euclideanRes
 ```
 
 
