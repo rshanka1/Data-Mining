@@ -21,6 +21,9 @@ installNewPackage <- function(packageName) {
         }
 }
 
+installNewPackage("lsr")
+
+library(lsr)
 ```
 
 
@@ -117,34 +120,41 @@ getNormalized <- function(trData, teData, minV, maxV, madFlag, method) {
             trResult[i] <- (maxV - minV) / (trMax -  trMin) * (trData[i] - trMax) + maxV
         }
         if(!is.null(teData)) {
-            teMin <- min(teData)
-            teMax <- max(teData)
             for(i in 1:length(teData)) {
-                teResult[[i]] <- (maxV - minV) / (teMax -  teMin) * (teData[i] - teMax) + maxV
+                teResult[[i]] <- (maxV - minV) / (trMax -  trMin) * (teData[i] - trMax) + maxV
             }
             result <- append(list(trResult), list(teResult))
         } else {
             result <- list(trResult)
         }
     } else if(method == "zscore"){
+        trMean <- mean(trData)
         if(!madFlag) {
-            trMean <- mean(trData)
             trSd <- sd(trData)
             for(i in 1:length(trData)) {
                 trResult[i] <- (trData[i] - trMean) / trSd 
             }
             if(!is.null(teData)) {
-                teMean <- mean(teData)
-                teSd <- sd(teData)
                 for(i in 1:length(teData)) {
-                    teResult[[i]] <- (teData[i] - teMean) / teSd 
+                    teResult[[i]] <- (teData[i] - trMean) / trSd 
                 }
                 result <- append(list(trResult), list(teResult))
             } else {
                 result <- list(trResult)
             }
         } else {
-            
+            trMeanDev <- aad(trData)
+            for(i in 1:length(trData)) {
+                trResult[i] <- (trData[i] - trMean) / trMeanDev 
+            }
+            if(!is.null(teData)) {
+                for(i in 1:length(teData)) {
+                    teResult[[i]] <- (teData[i] - trMean) / trMeanDev 
+                }
+                result <- append(list(trResult), list(teResult))
+            } else {
+                result <- list(trResult)
+            }
         }
     }
     result
@@ -200,8 +210,7 @@ minmaxNorm <- function(trData = NULL, teData = NULL, minV = NULL, maxV = NULL) {
 }
 
 
-# minmaxNorm(c(200, 300, 400, 600,1000), NULL, 0, 1)
-# minmaxNorm(c(200, 300, 400, 600,1000), c(43, 54, 32), 3, 5)
+# minmaxNorm(c(200, 300, 400, 600,1000), c(22, 25, 26), 3, 5)
 # minmaxNorm(longdat[1:250,], NULL, 0, 1)
 # minmaxNorm(longdat[1:250,], longdat[251:321,], 2, 3)
 # minmaxNorm(longmat[1:250,], NULL, 0, 1)
@@ -209,7 +218,7 @@ minmaxNorm <- function(trData = NULL, teData = NULL, minV = NULL, maxV = NULL) {
 ```
 
 
-```{r question1(zscore)}
+```{r question1(zscore), warning=FALSE}
 # Function to compute zscore Normalization
 zscoreNorm <- function(trData = NULL, teData = NULL, madFlag = FALSE) {
     if(!is.null(trData)) {
@@ -234,7 +243,7 @@ zscoreNorm <- function(trData = NULL, teData = NULL, madFlag = FALSE) {
 }
 
 # zscoreNorm(c(200, 300, 400, 600,1000), NULL, FALSE)
-# zscoreNorm(c(200, 300, 400, 600,1000), c(43, 54, 32), FALSE)
+# zscoreNorm(c(200, 300, 400, 600,1000), c(43, 54, 32), TRUE)
 # zscoreNorm(longdat[1:250,], NULL, FALSE)
 # zscoreNorm(longdat[1:250,], longdat[251:321,], FALSE)
 # zscoreNorm(longmat[1:250,], NULL, FALSE)
@@ -250,7 +259,10 @@ Report the normalized values in a table.
 
 
 ```{r question2}
-
+dataFromBook <- c(200, 300, 400, 600,1000)
+minmaxNorm(dataFromBook, NULL, 0, 1)
+zscoreNorm(dataFromBook, NULL, FALSE)
+zscoreNorm(dataFromBook, NULL, TRUE)
 ```
 
 
@@ -263,21 +275,35 @@ Using the data for petal length, answer the following questions:
 
 #### Question 3 a
 
-(4 points) Use your min-max normalization function with a range [????1:0; 1:0], to what values would f1:95; 3:1; 5:68 and 6:2g transform?
+(4 points) Use your min-max normalization function with a range [-1.0; 1.0], to what values would {1.95, 3.1, 5.68 and 6.2} transform?
 
 
 ```{r question3a}
+# Reading the data 
+destfile <- "data/iris.csv"
 
+# checking whether the file already exists or not
+if(!file.exists(destfile)) {
+    iris <- read.csv(url("http://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"), col.names = c("sepal.length", "sepal.width", "petal.length", "petal.width", "class"), header = F)
+    write.csv(iris, file = "data/iris.csv")
+} else {
+    iris <- read.csv("data/iris.csv", header = T)
+}
+
+dataQ3a <- c(1.95, 3.1, 5.68, 6.2)
+result <- minmaxNorm(iris$petal.length, dataQ3a, -1, 1)
+result
 ```
 
 
 #### Question 3 b
 
-(4 points) Use your z-score normalization function to determine what values f1:95, 3:1, 5:68, and 6:2g would transform to?
+(4 points) Use your z-score normalization function to determine what values {1.95, 3.1, 5.68, and 6.2} would transform to?
 
 
 ```{r question3b}
-
+result <- zscoreNorm(iris$petal.length, dataQ3a, TRUE)
+result
 ```
 
 
@@ -286,9 +312,7 @@ Using the data for petal length, answer the following questions:
 (2 points) Comment on which method is preferred for this data, and why?
 
 
-```{r question3c}
-
-```
+**Reasons**
 
 
 #### Question 4
