@@ -342,6 +342,7 @@ colnames(manhattanRes) <- c("x(Manhattan Distance)")
 manhattanRes
 ```
 
+
 ```{r Euclidean Distance}
 # Function to compute Euclidean Distance
 euclideanDist <- function(data1,data2){
@@ -364,6 +365,7 @@ colnames(euclideanRes) <- c("x(Euclidean Distance)")
 euclideanRes
 ```
 
+
 ```{r Minkowski Distance}
 # Function to compute Minkowski distance
 minkowskiDist <- function(data1,data2,lambda){
@@ -384,6 +386,7 @@ colnames(minkowskiRes) <- c("x(Minkowski Distance)")
 
 minkowskiRes
 ```
+
 
 ```{r Supremum Distance}
 # Function to compute supremum distance
@@ -407,8 +410,29 @@ colnames(supremumRes) <- c("x(Supremum Distance)")
 supremumRes
 ```
 
+
 ```{r Cosine Similarity}
-#crossprod(x, y)/sqrt(crossprod(x) * crossprod(y))
+#Cosine Similarity
+cosineSimilarity <- function(data1,data2){
+        for(i in 1:nrow(data1)){
+                p <- rep(0,3)
+                q <- rep(0,3)
+                r <- rep(0,3)
+                res <- rep(0,0)
+                #r <- rep(0,3)
+                for(j in 1:ncol(data2)){
+                       
+                        p[j] <- sum(data1[i,j] * data2[1,j])
+                        q[j] <- sqrt(sum(data1[i,j])^2)
+                        r[j] <- sqrt(sum(data2[1,j])^2)
+                        res[j] <- p[j]/(q[j] * r[j])
+                }
+                g[i] <- res
+        }
+        return(g)
+}
+
+cosineSimilarity(dat,x)
 ```
 
 
