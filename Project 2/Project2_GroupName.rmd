@@ -209,12 +209,6 @@ minmaxNorm <- function(trData = NULL, teData = NULL, minV = NULL, maxV = NULL) {
     result
 }
 
-
-# minmaxNorm(c(200, 300, 400, 600,1000), c(22, 25, 26), 3, 5)
-# minmaxNorm(longdat[1:250,], NULL, 0, 1)
-# minmaxNorm(longdat[1:250,], longdat[251:321,], 2, 3)
-# minmaxNorm(longmat[1:250,], NULL, 0, 1)
-# minmaxNorm(longmat[1:250,], longmat[251:321,], 2, 3)
 ```
 
 
@@ -242,12 +236,6 @@ zscoreNorm <- function(trData = NULL, teData = NULL, madFlag = FALSE) {
     result
 }
 
-# zscoreNorm(c(200, 300, 400, 600,1000), NULL, FALSE)
-# zscoreNorm(c(200, 300, 400, 600,1000), c(43, 54, 32), TRUE)
-# zscoreNorm(longdat[1:250,], NULL, FALSE)
-# zscoreNorm(longdat[1:250,], longdat[251:321,], FALSE)
-# zscoreNorm(longmat[1:250,], NULL, FALSE)
-# zscoreNorm(longmat[1:250,], longmat[251:321,], FALSE)
 ```
 
 
@@ -318,6 +306,14 @@ result
 #### Question 4
 
 Consider the following data set of with 5 samples and 3 variables:
+
+|   |  A  |  B  |  C  |
+|---|-----|-----|-----|
+| x1| 1.4 | 1.3 | 2.9 |
+| x2| 1.8 | 1.4 | 3.2 |
+| x3| 1.3 | 1.2 | 2.9 |
+| x4| 0.9 | 3.5 | 3.1 |
+| x5| 1.5 | 2.1 | 3.3 |
 
 ```{r}
 A <- c(1.4,1.8,1.3,0.9,1.5)
@@ -478,7 +474,16 @@ euclideanRes
 
 Perform k-means clustering manually with k=2 on the example data given below of n = 8 samples over p = 2 features.
 
-Table here
+| Sample | X1 | X2 | Initial Groups |
+|--------|----|----|----------------|
+|    1   |  1 |  4 |       1        |
+|    2   |  1 |  3 |       1        |
+|    3   |  0 |  4 |       2        |
+|    4   |  2 |  5 |       2        |
+|    5   |  5 |  1 |       1        |
+|    6   |  6 |  2 |       2        |
+|    7   |  4 |  0 |       1        |
+|    8   |  5 |  2 |       2        |
 
 
 #### Question 5 a
@@ -534,8 +539,16 @@ Table here
 **Hierarchical Clustering**
 
 Suppose you have 5 samples, for which the dissimilarity matrix is shown below:
+???
 
-Matrix here
+$$
+D = \left(\begin{array}{cc} 
+-- & 0.3 & 0.4 & 0.7 & 0.6\\
+0.3 & -- & 0.5 & 0.45 & 0.4\\
+0.7 & 0.8 & 0.45 & -- & 0.35\\
+0.6 & 0.2 & 0.4 & 0.35 & --
+\end{array}\right)
+$$ 
 
 That is, the distance between the first and second sample is 0.3; the distance between the first and fourth sample is 0.7.
 
