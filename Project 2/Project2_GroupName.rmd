@@ -491,7 +491,21 @@ Perform k-means clustering manually with k=2 on the example data given below of 
 (2 points) Plot the sample data.
 
 
-```{r question5a}
+```{r question 5a, fig.height=4, fig.width=4}
+## Loading the required libraries
+library(magrittr)
+library(dplyr)
+
+## Creating the dataset
+data <- data.frame(c(1,1,0,2,5,6,4,5), c(4,3,4,5,1,2,0,2), c(1,1,2,2,1,2,1,2))
+
+## Naming the columns
+colnames(data) <- c("x1", "x2", "group")
+
+## Plotting sample data
+plot(data$x1, data$x2, cex = 1, pch = 19, main = "Sample data", xlab = "x1", ylab = "x2")
+
+
 
 ```
 
@@ -500,39 +514,190 @@ Perform k-means clustering manually with k=2 on the example data given below of 
 
 (4 points) Assign samples to be the initial groupings given in the table. Compute and report the centroid for each cluster.
 
-```{r question5b}
+```{r question 5b, fig.height=4, fig.width=4}
+## Initial Plot with the points assigned to the given groups
+names = c("1", "2", "3", "4", "5", "6", "7", "8")
+plot(data[,1:2], col = data$group, cex = 1, main = "Initial Condition", pch = 19)
+text(data$x1+0.20, data$x2, labels=names)
+
+## Computing the initial centroids
+dist <- as.data.frame(data %>% group_by(group) %>% summarise(x1 = mean(x1), x2 = mean(x2)))
+
+## Matrix showing the initial centroids
+centers.init <- as.matrix(dist[, 2:3])
+
+## Initial Centroids
+centers.init
 
 ```
 
+The initial Centroid can be computed as follows:
+
+C1 = ((1+1+5+4)/4, (4+3+1+0)/4)
+C2 = ((0+2+6+5)/4, (4+5+2+2)/4)
+
+Thus, 
+C1 = (11/4, 2) or (2.75, 2)
+C2 = (13/4, 13/4) or (3.25, 3.25)
 
 #### Question 5 c
 
 (4 points) Assign each sample to the centroid to which it is closest (Euclidean distance). Report the cluster labels for each observation.
 
-```{r question5c}
+Here, we calculate the distance of each point from both the Centroids. Then, we assign the point to the Group to which it is closer to. These are the labels of each of the points after the 1st iteration. 
+
+```{r question 5c, fig.height=4, fig.width=4}
+## Computing distance of points from both the Centroids
+data$distance.from.C1 <- c(2.66, 2.02, 3.4, 3.09, 2.46, 3.25, 2.36, 2.25)
+data$distance.from.C2 <- c(2.37, 2.26, 3.34, 2.15, 2.85, 3.02, 3.34, 2.15)
+
+## Assigning the groups according to the closest Centroid
+data$group <- c(2,1,2,2,1,2,1,2)
+
+## Printing the data
+data
 
 ```
 
+We see that now there are 5 points in Cluster 2 and only 3 points in cluster 1. 
 
 #### Question 5 d
 
 (20 points) Repeat (b) and (c) until the clusters remain stable.
 
 
-```{r question5d}
+```{r question 5d, fig.height=4, fig.width=4}
+## Computing the centroids again
+dist <- data %>% group_by(group) %>% summarise(x1 = mean(x1), x2 = mean(x2))
+
+## Matrix showing the centroids now
+centers.init <- as.matrix(dist[, 2:3])
+
+## Centroids
+centers.init
 
 ```
 
+Now, we see that the Centroids are (3.33, 1.33) and (2.8, 3.4)
+
+```{r  Computing the distances from the Centroids, fig.height=4, fig.width=4}
+## Computing the distances from the Centroids again
+data$distance.from.C1 <- c(3.54, 2.87, 4.27, 3.90, 1.70, 2.75, 1.49, 1.80)
+data$distance.from.C2 <- c(1.90, 1.84, 2.86, 1.79, 3.26, 3.50, 3.61, 2.61)
+
+## Assigning the groups according to the closest Centroid
+data$group <- c(2,2,2,2,1,1,1,1)
+
+## Printing the data
+data
+
+```
+
+
+Now, let's compute the Centroid again.
+
+```{r  Computing the distances from the Centroids again, fig.height=4, fig.width=4}
+## Computing the centroids again
+dist <- data %>% group_by(group) %>% summarise(x1 = mean(x1), x2 = mean(x2))
+
+## Matrix showing the centroids now
+centers.init <- as.matrix(dist[, 2:3])
+
+## Centroids
+centers.init
+```
+
+Now, the Centroids are (5, 1.25) and (1,4)
+
+Let's compute the distances from both the Centroids for each point now.
+
+```{r Computing the distances from both Centroids again, fig.height=4, fig.width=4}
+
+## Computing the distances from the Centroids again
+data$distance.from.C1 <- c(4.85, 4.37, 5.71, 4.8, 0.25, 1.25, 1.6, 0.75)
+data$distance.from.C2 <- c(0, 1, 1, 1.41, 5, 5.39, 5, 4.47)
+
+## Assigning the groups according to the closest Centroid
+data$group <- c(2,2,2,2,1,1,1,1)
+
+## Printing the data
+data
+
+```
+
+The assignments of the points remain the same now. Thus, the clusters will now remain stable.
 
 #### Question 5 e
 
 (2 points) Plot the sample data colored by cluster labeling and adding centroid points.
 
 
-```{r question5e}
+We have created our own kMeans function here and plotted all the iterations.
+
+
+```{r question 5e, fig.height=4, fig.width=4}
+## Creating the dataset again
+data <- data.frame(c(1,1,0,2,5,6,4,5), c(4,3,4,5,1,2,0,2), c(1,1,2,2,1,2,1,2))
+
+## Naming the columns
+colnames(data) <- c("x1", "x2", "group")
+
+## Initial Centroid
+centers.init <- matrix(c(2.75, 2.00, 3.25, 3.25), nrow = 2, byrow = T)
+colnames(centers.init) <- c("x1", "x2")
+
+## Function to calculate the Euclidean distance between each point in the dataset to each centroid
+myEuclid <- function(points1, points2) {
+    distanceMatrix <- matrix(NA, nrow=dim(points1)[1], ncol=dim(points2)[1])
+    for(i in 1:nrow(points2)) {
+        distanceMatrix[,i] <- sqrt(rowSums(t(t(points1)-points2[i,])^2))
+    }
+    distanceMatrix
+}
+
+## Data points matrix
+data_points_m <- as.matrix(data[,1:2])
+
+## k-means Function
+myKmeans <- function(x, centers, distFun, nItter = 5) {
+    clusterHistory <- vector(nItter, mode="list")
+    centerHistory <- vector(nItter, mode="list")
+
+    for(i in 1:nItter) {
+        distsToCenters <- distFun(x, centers)
+        clusters <- apply(distsToCenters, 1, which.min)
+        centers <- apply(x, 2, tapply, clusters, mean)
+        # Saving history
+        clusterHistory[[i]] <- clusters
+        centerHistory[[i]] <- centers
+    }
+
+    list(clusters=clusterHistory, centers=centerHistory)
+}
+
+## Applying kMeans on the given points using Euclidean distance
+result <- myKmeans(data_points_m, centers.init, myEuclid)
+
+## Looking at the result
+result
+
+#### Plots showing the iterations of kMeans
+
+## Initial Plot with the points assigned to the given groups and their Centroid
+plot(data[,1:2], col = data$group, cex = 1, main = "Initial Condition with the Centroids", pch = 19)
+text(data$x1+0.20, data$x2, labels=names)
+points(centers.init, pch=19, cex=3, col = c("black", "red"))
+
+## Plots showing the iterations of the kMeans Clustering
+for(i in 1:3) {
+    plot(data_points_m, col = result$clusters[[i]], main=paste("Iteration:", i), xlab="x1", ylab="x2", pch = 19)
+  text(data$x1+0.20, data$x2, labels=names)
+    points(result$centers[[i]], cex=3, pch=19, col=1:nrow(result$centers[[i]]))
+}
 
 ```
 
+We see that iterations 2 and 3 here are the same and the clusters are stable at (5, 1.25) and (1, 4) now. 
 
 #### Question 6
 
@@ -558,18 +723,124 @@ That is, the distance between the first and second sample is 0.3; the distance b
 (12 points) Trace running through hierarchical clustering manually with complete link- age and sketch the dendrogram. Estimate the heights in the dendrogram from the dissimilarity distances.
 
 
-```{r question6a}
+The given dissimilarity matrix is as follows:
+
+|    | 1   |  2  | 3   | 4    | 5 |
+|----|-----|-----|-----|------|---|
+|  1 |  -  |     |     |      |   |
+|  2 | 0.3 | -   |     |      |   |
+|  3 | 0.4 | 0.5 | -   |      |   |
+|  4 | 0.7 | 0.8 | 0.45|   -  | - |
+|  5 | 0.6 | 0.2 | 0.4 | 0.35 | - |
+
+We see that the samples 2 and 5 are nearest to each other (distance of 0.2). So we merge them first. 0.2 is the height when we merge them in the dendogram. 
+
+So now we have 2 and 5 as a cluster. So our dissimilarity matrix now becomes as follws:
+
+|    | 1   | 25  | 3   | 4  |
+|----|-----|-----|-----|----|
+|  1 |  -  |     |     |    |
+| 25 | 0.6 | -   |     |    |
+|  3 | 0.4 | 0.5 | -   |    |
+|  4 | 0.7 | 0.8 | 0.45| -  |
+
+Note that we took the distance between point 1 and cluster of 2,5 as 0.6 which is maximum of distance between point 1,2 and point 1,5 as we are using Complete Linkage. Similarly we can calculate other distances.
+
+Now, we merge points 1 and 3 and the height here is 0.4.
+
+Now, our dissimilarity matrix becomes as follows:
+
+|    |  13 | 25  | 4 |
+|----|-----|-----|---|
+| 13 |  -  |     |   |
+| 25 | 0.6 | -   |   |
+|  4 | 0.7 | 0.8 | - |
+
+Now, we merge clusters 1,3 and clusters 2,5 and here the height of the dendogram is 0.6. 
+
+After merging, our dissimilarity matrix becomes as follows:
+
+|      |  1325  | 4 |
+|------|--------|---|
+| 1325 |  -     |   |
+|  4   |  0.8   | - |
+
+Now, only sample 4 is left out. So we can merge cluster 1,3,2,5 with the sample 4. Here the height is equal to 0.8.
+
+We have used R just to plot the dendogram.
+
+
+```{r question 6a}
+## Dissimilarity Matrix
+d <- matrix(c(0, 0.3, 0.4, 0.7, 0.6, 0.3, 0, 0.5, 0.8, 0.2, 0.4, 0.5, 0, 0.45, 0.4, 0.7, 0.8, 0.45, 0, 0.35, 0.6, 0.2, 0.4, 0.35, 0), nrow = 5, byrow = T)
+
+## Changing the class of dissimilarity matrix to distance
+d <- as.dist(d)
+
+## Hierarchical clustering using Complete linkage
+tree.single = hclust(d, method="complete")
+
+## Plotting the Dendogram
+plot(tree.single,hang=-1e-10, main="Dendogram (Complete linkage)", xlab="")
 
 ```
-
 
 #### Question 6 b
 
 (12 points) Repeat (a), with single linkage clustering
 
+The given dissimilarity matrix is as follows:
 
-```{r question6b}
+|    | 1   |  2  | 3   | 4    | 5 |
+|----|-----|-----|-----|------|---|
+|  1 |  -  |     |     |      |   |
+|  2 | 0.3 | -   |     |      |   |
+|  3 | 0.4 | 0.5 | -   |      |   |
+|  4 | 0.7 | 0.8 | 0.45|   -  | - |
+|  5 | 0.6 | 0.2 | 0.4 | 0.35 | - |
 
+Now, we merge points 2 and 5 as they are closest to each other. Their height when we merge them in the dendogram is 0.2.
+
+After merging points 2 and 5, our dissimilarity matrix becomes as follows:
+
+|    | 1   | 25   |  3   | 4  |
+|----|-----|------|------|----|
+|  1 |  -  |      |      |    |
+| 25 | 0.3 |  -   |      |    |
+|  3 | 0.4 | 0.4  |  -   |    |
+|  4 | 0.7 | 0.35 | 0.45 | -  |
+
+Note that now we used the minimum distance between points 1,2 and points 1,5 as the distance between the cluster 25 and point 1. 
+
+Now, we merge cluster 2,5 and the point 1. The height here is 0.3.
+
+So, our dissimilarity matrix now becomes as follows:
+
+|     |  125 |  3   | 4 |
+|-----|------|------|---|
+| 125 |   -  |      |   |
+|  3  | 0.4  |  -   |   |
+|  4  | 0.35 | 0.45 | - |
+
+Now we have points 1,2,5 in a single cluster. We now merge cluster 1,2,5 with the point 4 with the height of 0.35 in the dendogram. 
+
+So our dissimilarity matrix becomes as follows:
+
+|      |  1245  | 3 |
+|------|--------|---|
+| 1245 |  -     |   |
+|  3   |  0.4   | - |
+
+Now, we merge cluster 1,2,4,5 with the point 3 with the height of 0.4 in the dendogram. 
+
+The dendogram is shown as follows:
+
+```{r question 6b}
+## Hierarchical clustering using Single linkage
+tree.single = hclust(d, method="single")
+
+## Plotting the Dendogram
+plot(tree.single,hang=-1e-10, main="Dendogram (Single linkage)", xlab="")
 ```
 
 
@@ -578,9 +849,48 @@ That is, the distance between the first and second sample is 0.3; the distance b
 (6 points) Use the dendrogram from (a) and (b), cut the dendrograms to form three clusters. Which samples are in each cluster?
 
 
-```{r question6c}
+```{r question 6c}
+## Hierarchical clustering using Complete linkage
+tree.single = hclust(d, method="complete")
+
+## Plotting the Dendogram
+plot(tree.single,hang=-1e-10, main="Dendogram (Complete linkage)", xlab="")
+abline(h=0.45, lty=3, lwd=2)
 
 ```
+
+Here, if we form 3 clusters, we get the following samples in each cluster:
+
+Cluster 1: Sample points 1,3
+
+Cluster 2: Sample points 2,5
+
+Cluster 3: Sample point 4
+
+
+
+### Single Linkage:
+
+```{r single linkage}
+## Hierarchical clustering using Single linkage
+tree.single = hclust(d, method="single")
+
+## Plotting the Dendogram
+plot(tree.single,hang=-1e-10, main="Dendogram (Single linkage)", xlab="")
+abline(h=0.325, lty=3, lwd=2)
+
+```
+
+
+Here, if we form 3 clusters, we get the following samples in each cluster:
+
+Cluster 1: Sample points 1,2,5
+
+Cluster 2: Sample point 4
+
+Cluster 3: Sample point 3
+
+
 
 
 **End of assignemnt**
