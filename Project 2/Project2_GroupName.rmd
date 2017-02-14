@@ -1,5 +1,5 @@
 ---
-title: "Group Name"
+title: "Epsilon"
 author: "Nishanth Gandhidoss, Raghavendar Shankar, Mitul Shah"
 date: "2 February 2017"
 output: html_document
@@ -340,6 +340,8 @@ x <- rbind.data.frame(c(1.25,1.78,3.01))
 ```{r question4a}
 g <- rep(0,5)
 ```
+
+
 ```{r Manhattan Distance}
 # Function to compute Manhattan Distance
 manhattanDist <- function(data1,data2){
@@ -423,7 +425,7 @@ supremumRes
 ```
 
 
-```{r Cosine Similarity}
+```{r Cosine Similarity, warning=FALSE}
 #Cosine Similarity
 cosineSimilarity <- function(data1,data2){
     for(i in 1:nrow(data1)){
