@@ -337,22 +337,18 @@ x <- rbind.data.frame(c(1.25,1.78,3.01))
 (5 points) Calculate and present the distance between the new data point and each of the points in the data set using Manhattan distance, Euclidean distance, Minkowski distance ( = 3), supremum distance, and cosine similarity.
 
 
-```{r question4a}
-g <- rep(0,5)
-```
-
-
 ```{r Manhattan Distance}
 # Function to compute Manhattan Distance
 manhattanDist <- function(data1,data2){
+    temp <- rep(0,5)
     for(i in 1:nrow(data1)){
-        p <- rep(0,3)
+        temp1 <- rep(0,3)
         for(j in 1:ncol(data2)){
-            p[j] <- abs(data1[i,j] - data2[1,j])
+            temp1[j] <- abs(data1[i,j] - data2[1,j])
         }
-        g[i] <- sum(p)
+        temp[i] <- sum(temp1)
     }
-    return(g)
+    return(temp)
 }
 
 result <- manhattanDist(dat,x)
@@ -366,14 +362,15 @@ manhattanRes
 ```{r Euclidean Distance}
 # Function to compute Euclidean Distance
 euclideanDist <- function(data1,data2){
+    temp <- rep(0,5)
     for(i in 1:nrow(data1)){
-        p <- rep(0,3)
+        temp1 <- rep(0,3)
         for(j in 1:ncol(data2)){
-            p[j] <- (data1[i,j] - data2[1,j])^2
+            temp1[j] <- (data1[i,j] - data2[1,j])^2
         }
-        g[i] <- sqrt(sum(p))
+        temp[i] <- sqrt(sum(temp1))
     }
-    return(g)
+    return(temp)
 }
 
 result <- euclideanDist(dat,x)
@@ -387,14 +384,15 @@ euclideanRes
 ```{r Minkowski Distance}
 # Function to compute Minkowski distance
 minkowskiDist <- function(data1,data2,lambda){
+    temp <- rep(0,5)
     for(i in 1:nrow(data1)){
-        p <- rep(0,3)
+        temp1 <- rep(0,3)
         for(j in 1:ncol(data2)){
-            p[j] <- (abs(data1[i,j] - data2[1,j]))^lambda
+            temp1[j] <- (abs(data1[i,j] - data2[1,j]))^lambda
         }
-        g[i] <- (sum(p))^(1/lambda)
+        temp[i] <- (sum(temp1))^(1/lambda)
     }
-    return(g)
+    return(temp)
 }
 result <- minkowskiDist(dat,x,lambda = 3)
 minkowskiRes <- data.frame(matrix(data = result,nrow = 5,ncol = 1,byrow = T),row.names = c("x1","x2","x3","x4","x5"))
@@ -407,14 +405,15 @@ minkowskiRes
 ```{r Supremum Distance}
 # Function to compute supremum distance
 supremumDist <- function(data1,data2){
+    temp <- rep(0,5)
     for(i in 1:nrow(data1)){
-        p <- rep(0,3)
+        temp1 <- rep(0,3)
         for(j in 1:ncol(data2)){
-            p[j] <- abs(data1[i,j] - data2[1,j])
+            temp1[j] <- abs(data1[i,j] - data2[1,j])
         }
-        g[i] <- max(p)
+        temp[i] <- max(temp1)
     }
-    return(g)
+    return(temp)
 }
 
 result <- supremumDist(dat,x)
@@ -428,24 +427,21 @@ supremumRes
 ```{r Cosine Similarity, warning=FALSE}
 #Cosine Similarity
 cosineSimilarity <- function(data1,data2){
-    for(i in 1:nrow(data1)){
-        p <- rep(0,3)
-        q <- rep(0,3)
-        r <- rep(0,3)
-        res <- rep(0,0)
-        #r <- rep(0,3)
-        for(j in 1:ncol(data2)){
-            p[j] <- sum(data1[i,j] * data2[1,j])
-            q[j] <- sqrt(sum(data1[i,j])^2)
-            r[j] <- sqrt(sum(data2[1,j])^2)
-            res[j] <- p[j]/(q[j] * r[j])
-        }
-        g[i] <- res
+    temp <- rep(0,5)
+    for (i in 1:5){
+        vector1 = data1[i,]
+        vector2 = data2[1,]
+        temp[i] <- sum(vector1*vector2)/sqrt(sum(vector1^2)*sum(vector2^2))
+    
     }
-    return(g)
+    return(temp)
 }
 
-cosineSimilarity(dat,x)
+result <- cosineSimilarity(dat,x)
+cosineRes <- data.frame(matrix(data = result,nrow = 5,ncol = 1,byrow = T),row.names = c("x1","x2","x3","x4","x5"))
+colnames(cosineRes) <- c("x(Cosine Similarity)")
+
+cosineRes
 ```
 
 
