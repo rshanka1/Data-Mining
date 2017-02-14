@@ -52,21 +52,6 @@ The function zscoreNorm should take three arguments
 * **madFlag**- boolean flag if positive use mean absolute deviation instead of standard deviation
 
 
-```{r This chunk is for testing}
-dat <- read.csv("TaskRatings.csv")
-
-longmat <- rbind(as.matrix(dat[,3:10]),
-                  as.matrix(dat[,11:18]),
-                  as.matrix(dat[,19:26]),deparse.level=2)
-
-longdat <- data.frame(task=dat$Task,
-                      rater= as.factor(rep(1:3,each=nrow(dat))),
-                       longmat)
-longdat <- longdat[, c(-1, -2)]
-```
-
-
-
 ```{r question1(minmax)}
 # Check whether the two data is of same class
 isDataSameClass <- function(trData, teData) {
