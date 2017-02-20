@@ -155,9 +155,11 @@ plot(music.hclust.complete, labels = music$type, main='Dendogram labelled by typ
 plot(music.hclust.single, labels = music$artistname, main='Dendogram labelled by Artist(Single linkage)')
 
 # Plotting the Dendogram by complete linkage
-plot(music.hclust.complete, labels = music$artistname, main='Dendogram labelled by Artist(Complete linkage)')
+plot(music.hclust.complete, labels = music$artistID, main='Dendogram labelled by Artist(Complete linkage)')
 
 ```
+
+#Reason Required
 
 
 #### Question 8
