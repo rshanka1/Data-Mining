@@ -234,11 +234,6 @@ data.vote.20 <- data.frame(cbind(data$party,data.vote.20))
 ```
 
 
-```{r Scaling the 20 randomly selected votes}
-data.vote.20[-1] <- scale(data.vote.20[-1])
-```
-
-
 ```{r Applying PCA for 20 votes}
 library(caret)
 library(e1071)
@@ -257,8 +252,6 @@ points(x = pca.predict.20,pch = 21,col = ifelse(pca.predict.20[,3] == 'D','blue'
 ```{r Data sampling and scaling for 100 votes}
 data.vote.100 <- sample(x = data[7:1328],size = 100)
 data.vote.100 <- data.frame(cbind(data$party,data.vote.100))
-data.vote.100[-1] <- scale(data.vote.100[-1])
-
 ```
 
 
