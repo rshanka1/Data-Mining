@@ -80,7 +80,7 @@ In R, you will use the clustering package cluster, consider using the methods di
 
 (12 points) Run kmeans clustering on the data of (b) and report the assignments with k=3 and compare to (c)
 
-```{r question6b}
+```{r question6e}
 
 ```
 
@@ -89,16 +89,16 @@ In R, you will use the clustering package cluster, consider using the methods di
 
 (12 points) Run kmediods clustering on the data of (b) and report the assignments with k=3 and compare to (e)
 
-```{r question6b}
+```{r question6f}
 
 ```
 
 
-#### Question 6f
+#### Question 6g
 
 (4 points (bonus)) Perform agglomerative hierarchical clustering with minimax linkage. Report the dendrogram.
 
-```{r question6f}
+```{r question6g}
 
 ```
 
@@ -119,8 +119,47 @@ Repeat the analysis as above, but label the samples by the musical `Artist'. Whi
 
 
 ```{r question7}
+# Reading the data
+music <- read.csv("data/music.csv", header = T)
+
+# Subset the numeric variables (Looked at the Structure of the dataframe)
+subset.music <- music[, -c(2:5)]
+
+## Computing mean for each column
+means <- apply(subset.music, 2, mean)
+
+## Computing sd for each column
+sd <- apply(subset.music, 2, sd)
+
+## Standardization (z-score)
+subset.music <- scale(subset.music, center=means, scale=sd)
+
+## Distance Matrix
+subset.dist <- dist(subset.music, method = "euclidean", diag = FALSE, upper = FALSE, p = 2)
+
+## Hierarchical Clustering by single linkage
+music.hclust.single <- hclust(subset.dist, method = "single")
+
+## Hierarchical Clustering by complete linkage
+music.hclust.complete = hclust(subset.dist, method = "complete")
+
+# Labeling by type
+# Plotting the Dendogram by single linkage
+plot(music.hclust.single, labels = music$type, main='Dendogram labelled by type(Single linkage)')
+
+# Plotting the Dendogram by complete linkage
+plot(music.hclust.complete, labels = music$type, main='Dendogram labelled by type(Complete linkage)')
+
+#Labeling by artist
+# Plotting the Dendogram by single linkage
+plot(music.hclust.single, labels = music$artistname, main='Dendogram labelled by Artist(Single linkage)')
+
+# Plotting the Dendogram by complete linkage
+plot(music.hclust.complete, labels = music$artistID, main='Dendogram labelled by Artist(Complete linkage)')
 
 ```
+
+#Reason Required
 
 
 #### Question 8
