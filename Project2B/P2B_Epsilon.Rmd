@@ -1,0 +1,187 @@
+---
+title: "Project 2B Epsilon"
+author: "Nishanth Gandhidoss, Raghavendar Shankar, Mitul Shah"
+date: "15 February 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r include=FALSE}
+# installing the packages
+# Function to Install packages
+# checks the available.packages before
+installNewPackage <- function(packageName) {
+        if(packageName  %in% rownames(installed.packages()) == FALSE)
+        {
+                install.packages(packageName, repos = "http://cran.us.r-project.org", dependencies=TRUE)
+        }
+}
+
+```
+
+
+**Continuation of Project 2**
+
+#### Question 6
+
+##### College Data 
+
+(70 points) Consider methods to groups colleges based on several different factors. The set of colleges considered are the 21 top colleges based on earning potential of undergraduates with computer science degrees: college.csv (Sources: Payscale.com and the National Center for Education Statistics, NCES1) After loading in the data, you will want to ensure the data is scaled in order calculate the dissimilarity matrix (scale).
+
+In R, you will use the clustering package cluster, consider using the methods diana and agnes. In Matlab, use the linkage, pdist, and cluster functions.
+
+
+```{r question6 Reading in the data}
+
+```
+
+
+#### Question 6a
+
+(8 points) First, perform agglomerative hierarchical clustering on the college data with complete linkage. Report the dendrogram.
+
+```{r question6a}
+
+```
+
+
+#### Question 6b
+
+(16 points) Remove from consideration the following schools: CSU-Chico, Columbia, North-western, SFSU, Berkeley, UCDavis, UCSB, and WPI. Perform and report the dendrogram for agglomerative hierarchical clustering with complete, and average linkage.
+
+```{r question6b}
+
+```
+
+
+#### Question 6c
+
+(12 points) Run the agglomerative hierarchical clustering with single linkage for the same data as in (b). Report the k = 3 cluster assignments.
+
+```{r question6c}
+
+```
+
+
+#### Question 6d
+
+(10 points) Perform principal component analysis on the college data of (a). Plot the rst two principal component scores (labeling each point with the school it represents).
+
+```{r question6d}
+
+```
+
+
+#### Question 6e
+
+(12 points) Run kmeans clustering on the data of (b) and report the assignments with k=3 and compare to (c)
+
+```{r question6b}
+
+```
+
+
+#### Question 6f
+
+(12 points) Run kmediods clustering on the data of (b) and report the assignments with k=3 and compare to (e)
+
+```{r question6b}
+
+```
+
+
+#### Question 6f
+
+(4 points (bonus)) Perform agglomerative hierarchical clustering with minimax linkage. Report the dendrogram.
+
+```{r question6f}
+
+```
+
+
+#### Question 7
+
+##### Music Data
+
+For this problem you will consider several properties that have been measured from music recordings.
+
+Consider only the numeric variables from the data: music.csv.
+
+First, standardize the variables.
+
+Then, perform hierarchical clustering two times, with single and complete linkage. Label the clusters by the `Type' of music.
+
+Repeat the analysis as above, but label the samples by the musical `Artist'. Which method seems best?
+
+
+```{r question7}
+
+```
+
+
+#### Question 8
+
+##### Voting Data
+
+For this question you will consider methods to group members of Congress based on their voting records. The voting records from congress are available at Oce of the Clerk, US House of Representatives, but not in a form that is easily digestible for analysis.
+
+In fact it was only in 2016, that Congress agreed to make legislative data available themselves. Govtrack.us has links to primary data sources and api's projects that collect and release the data in easier digestible forms:
+
+* Govtrack.us - https://www.govtrack.us/developers
+* Github Congress project - https://github.com/unitedstates/congress
+* ProPublica's Congress API - https://propublica.github.io/congress-api-docs/
+
+A long-standing project to document congressional roll call votes is available at the Inter-university Consortium for Political and Social Research (ICPSR). This data includes roll call votes from 1789 - 1990. The ICPSR formatting for storing this data has been used on other sites which are keeping up with the creating a record, UCLA. For more recent years of Congress,data is collected at the following sites: http://adric.sscnet.ucla.edu/rollcall/3.
+
+For instance, to explore the 114th Congress, there are two files available:
+
+* H114.ord - roll call file detailing votes of each member of US House of Representatives in the 114th Congress.
+* H114desc.csv - file detailing the votes
+
+The basic format of the data consist of many fixed width items listed for each Congressperson (including their votes for each roll call).
+
+114107132313MICHIGA 10001CONYERS  7966161161661616111 ...
+114130351313NEW YOR 10001RANGEL   9900000161661616111 ...
+1142114123 1MICHIGA 20001BENISHEK 7911611111116161116 ...
+
+The main structure of the data is:
+
+* 3 digits - Congress number
+* 5 digits - ICPSR number (unique number for each member of Congress/Senate)
+* 2 digits - ICPSR State code
+* 2 digits - District number
+* 8 characters - State name
+* 3 digits - Party code: (100 Dem., 200 Rep.)
+* 2 digits - ICPSR Occupancy and Once code
+* 11 characters - Member's name
+* remaining digits - Votes
+
+Votes codes: 0 - Not in Legislature, f1; 2; 3g - Yea, f4; 5; 6g - Nay, f7; 8; 9g - Abstentions
+
+The first 5 votes of the 114th Congress have to do with electing the Speaker of the House and rules votes; ignore these first 5 votes. Randomly select 20 votes from the remaining roll calls of the 114th Congress. Perform principal component analysis on the voting record and plot the first two principal components.
+
+Note, this data is in a sense supervised, we know that party affiliation of each member of the House of Representative. Therefore, color the plot of the first two principal components based on party (red = Republican, blue = Democrat). Comment on the results of this analysis.
+
+Repeat this analysis with a random sample of 100 votes from the 114th Congress. Also, show the amount of variance explained by the first 10 principal components. Comment on whether you should be able to predict a Congress person's party affiliation from their voting record.
+
+
+```{r question8}
+
+```
+
+
+#### Question 9
+
+(10 points (bonus)) Consider the Voting Data question above. Have the voting records of Congress always been so divided between party affiliation? Create a small multiples plot showing the results of PCA (colored by party) for the last 20 years. You will need to download prior Congress's roll calls from the sites indicated above.
+
+
+```{r question9}
+
+```
+
+
+**End of assignemnt**
