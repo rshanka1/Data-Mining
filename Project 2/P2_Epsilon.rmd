@@ -424,7 +424,7 @@ supremumRes
 ```
 
 
-```{r Cosine Similarity, warning=FALSE}
+```{r Cosine Similarity}
 #Cosine Similarity
 cosineSimilarity <- function(data1,data2){
     temp <- rep(0,5)
