@@ -215,12 +215,57 @@ H114 <- readKH("C:/Users/Raghavendran/Documents/CS 4821/Project2b/H114.ord")
 
 summary(H114)
 
-H114$codes
+```
 
 
-#rollcall(data = H114,yea = c(1,2,3),nay = c(4,5,6),missing = c(7,8,9),notInLegis = 0,legis.data = H114$legis.data,vote.data = H114$vote.data,desc = H114$desc,source = H114$source)
+```{r Forming dataframe}
+data <- data.frame(H114$legis.data,H114$votes)
+```
 
-H114$votes
+
+```{r Ignoring first five votes}
+data <- data[-c(7,8,9,10,11)]
+```
+
+
+```{r Randomly selecting 20 votes}
+data.vote.20 <- sample(x = data[7:1328],size = 20)
+data.vote.20 <- data.frame(cbind(data$party,data.vote.20))
+```
+
+
+```{r Scaling the 20 randomly selected votes}
+data.vote.20[-1] <- scale(data.vote.20[-1])
+```
+
+
+```{r Applying PCA for 20 votes}
+library(caret)
+library(e1071)
+pca.vote.20 <- preProcess(x = data.vote.20[-1],method = 'pca',pcaComp = 2)
+pca.predict.20 <- predict(object = pca.vote.20,data.vote.20)
+pca.predict.20 <- pca.predict.20[c(2,3,1)]
+```
+
+
+```{r Plotting the two extracted features}
+plot(x = pca.predict.20$PC1, y = pca.predict.20$PC2)
+points(x = pca.predict.20,pch = 21,col = ifelse(pca.predict.20[,3] == 'D','blue','red'))
+```
+
+
+```{r Data sampling and scaling for 100 votes}
+data.vote.100 <- sample(x = data[7:1328],size = 100)
+data.vote.100 <- data.frame(cbind(data$party,data.vote.100))
+data.vote.100[-1] <- scale(data.vote.100[-1])
+
+```
+
+
+```{r Data Preprocessing using PCA analysis for 100 votes}
+pca.vote.100 <- preProcess(x = data.vote.100[-1],method = 'pca',pcaComp = 10)
+pca.predict.100 <- predict(object = pca.vote.100,data.vote.100)
+pca.predict.100 <- pca.predict.100[c(2,3,4,5,6,7,8,9,10,11,1)]
 ```
 
 
