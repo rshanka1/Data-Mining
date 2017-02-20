@@ -170,7 +170,18 @@ Repeat this analysis with a random sample of 100 votes from the 114th Congress. 
 
 
 ```{r question8}
+library(wnominate)
 
+H114 <- readKH("C:/Users/Raghavendran/Documents/CS 4821/Project2b/H114.ord")
+
+summary(H114)
+
+H114$codes
+
+
+#rollcall(data = H114,yea = c(1,2,3),nay = c(4,5,6),missing = c(7,8,9),notInLegis = 0,legis.data = H114$legis.data,vote.data = H114$vote.data,desc = H114$desc,source = H114$source)
+
+H114$votes
 ```
 
 
