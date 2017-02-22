@@ -26,7 +26,7 @@ installNewPackage <- function(packageName) {
 
 **Continuation of Project 2**
 
-#### Question 6
+#### Question 7
 
 ##### College Data 
 
@@ -35,75 +35,75 @@ installNewPackage <- function(packageName) {
 In R, you will use the clustering package cluster, consider using the methods diana and agnes. In Matlab, use the linkage, pdist, and cluster functions.
 
 
-```{r question6 Reading in the data}
+```{r question7 Reading in the data}
 
 ```
 
 
-#### Question 6a
+#### Question 7a
 
 (8 points) First, perform agglomerative hierarchical clustering on the college data with complete linkage. Report the dendrogram.
 
-```{r question6a}
+```{r question7a}
 
 ```
 
 
-#### Question 6b
+#### Question 7b
 
 (16 points) Remove from consideration the following schools: CSU-Chico, Columbia, North-western, SFSU, Berkeley, UCDavis, UCSB, and WPI. Perform and report the dendrogram for agglomerative hierarchical clustering with complete, and average linkage.
 
-```{r question6b}
+```{r question7b}
 
 ```
 
 
-#### Question 6c
+#### Question 7c
 
 (12 points) Run the agglomerative hierarchical clustering with single linkage for the same data as in (b). Report the k = 3 cluster assignments.
 
-```{r question6c}
+```{r question7c}
 
 ```
 
 
-#### Question 6d
+#### Question 7d
 
 (10 points) Perform principal component analysis on the college data of (a). Plot the rst two principal component scores (labeling each point with the school it represents).
 
-```{r question6d}
+```{r question7d}
 
 ```
 
 
-#### Question 6e
+#### Question 7e
 
 (12 points) Run kmeans clustering on the data of (b) and report the assignments with k=3 and compare to (c)
 
-```{r question6e}
+```{r question7e}
 
 ```
 
 
-#### Question 6f
+#### Question 7f
 
 (12 points) Run kmediods clustering on the data of (b) and report the assignments with k=3 and compare to (e)
 
-```{r question6f}
+```{r question7f}
 
 ```
 
 
-#### Question 6g
+#### Question 7g
 
 (4 points (bonus)) Perform agglomerative hierarchical clustering with minimax linkage. Report the dendrogram.
 
-```{r question6g}
+```{r question7g}
 
 ```
 
 
-#### Question 7
+#### Question 8
 
 ##### Music Data
 
@@ -118,12 +118,12 @@ Then, perform hierarchical clustering two times, with single and complete linkag
 Repeat the analysis as above, but label the samples by the musical `Artist'. Which method seems best?
 
 
-```{r question7}
+```{r question8}
 # Reading the data
-music <- read.csv("data/music.csv", header = T)
+music <- read.csv("data/music2.csv", header = T)
 
 # Subset the numeric variables (Looked at the Structure of the dataframe)
-subset.music <- music[, -c(2:5)]
+subset.music <- music[, -c(1:3)]
 
 ## Computing mean for each column
 means <- apply(subset.music, 2, mean)
@@ -145,24 +145,23 @@ music.hclust.complete = hclust(subset.dist, method = "complete")
 
 # Labeling by type
 # Plotting the Dendogram by single linkage
-plot(music.hclust.single, labels = music$type, main='Dendogram labelled by type(Single linkage)')
+plot(music.hclust.single, labels = music$Type, main='Dendogram labelled by type(Single linkage)')
 
 # Plotting the Dendogram by complete linkage
-plot(music.hclust.complete, labels = music$type, main='Dendogram labelled by type(Complete linkage)')
+plot(music.hclust.complete, labels = music$Type, main='Dendogram labelled by type(Complete linkage)')
 
 #Labeling by artist
 # Plotting the Dendogram by single linkage
-plot(music.hclust.single, labels = music$artistname, main='Dendogram labelled by Artist(Single linkage)')
+plot(music.hclust.single, labels = music$Artist, main='Dendogram labelled by Artist(Single linkage)')
 
 # Plotting the Dendogram by complete linkage
-plot(music.hclust.complete, labels = music$artistID, main='Dendogram labelled by Artist(Complete linkage)')
-
+plot(music.hclust.complete, labels = music$Artist, main='Dendogram labelled by Artist(Complete linkage)')
 ```
 
 #Reason Required
 
 
-#### Question 8
+#### Question 9
 
 ##### Voting Data
 
@@ -208,7 +207,7 @@ Note, this data is in a sense supervised, we know that party affiliation of each
 Repeat this analysis with a random sample of 100 votes from the 114th Congress. Also, show the amount of variance explained by the first 10 principal components. Comment on whether you should be able to predict a Congress person's party affiliation from their voting record.
 
 
-```{r question8}
+```{r question9}
 library(wnominate)
 
 H114 <- readKH("C:/Users/Raghavendran/Documents/CS 4821/Project2b/H114.ord")
@@ -278,12 +277,12 @@ points(x = pca.predict.100,pch = 21,col = ifelse(pca.predict.100$Data.Party == '
 plot(pca.vote.100,type = 'l')
 ```
 
-#### Question 9
+#### Question 10
 
 (10 points (bonus)) Consider the Voting Data question above. Have the voting records of Congress always been so divided between party affiliation? Create a small multiples plot showing the results of PCA (colored by party) for the last 20 years. You will need to download prior Congress's roll calls from the sites indicated above.
 
 
-```{r question9}
+```{r question10}
 
 ```
 
