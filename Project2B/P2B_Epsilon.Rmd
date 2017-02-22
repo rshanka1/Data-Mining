@@ -233,34 +233,50 @@ data.vote.20 <- sample(x = data[7:1328],size = 20)
 data.vote.20 <- data.frame(cbind(data$party,data.vote.20))
 ```
 
+```{r Feature Scaling for 20 votes}
+data.vote.20[,2:21] <- scale(data.vote.20[,2:21],center = TRUE,scale = TRUE)
+```
+
 
 ```{r Applying PCA for 20 votes}
-library(caret)
-library(e1071)
-pca.vote.20 <- preProcess(x = data.vote.20[-1],method = 'pca',pcaComp = 2)
-pca.predict.20 <- predict(object = pca.vote.20,data.vote.20)
-pca.predict.20 <- pca.predict.20[c(2,3,1)]
+library(dplyr)
+pca.vote.20 <- princomp(x = data.vote.20[-1],cor = TRUE,scores = TRUE)
+pca.predict.20 <- data.frame(predict(object = pca.vote.20,data[7:1328]))
+pca.predict.20 <- mutate(.data = pca.predict.20,Data.Party = data.vote.20$data.party)
 ```
 
 
-```{r Plotting the two extracted features}
-plot(x = pca.predict.20$PC1, y = pca.predict.20$PC2)
-points(x = pca.predict.20,pch = 21,col = ifelse(pca.predict.20[,3] == 'D','blue','red'))
+```{r Plotting the two extracted features for 20 votes}
+plot(x = pca.predict.20$Comp.1, y = pca.predict.20$Comp.2)
+points(x = pca.predict.20,pch = 21,col = ifelse(pca.predict.20$Data.Party == 'D','blue','red'))
 ```
 
+```{r Varience across the features for 20 votes}
+plot(pca.vote.20,type = 'l')
+```
 
 ```{r Data sampling and scaling for 100 votes}
 data.vote.100 <- sample(x = data[7:1328],size = 100)
 data.vote.100 <- data.frame(cbind(data$party,data.vote.100))
+data.vote.100[,2:101] <- scale(data.vote.100[,2:101],center = TRUE,scale = TRUE)
 ```
 
 
 ```{r Data Preprocessing using PCA analysis for 100 votes}
-pca.vote.100 <- preProcess(x = data.vote.100[-1],method = 'pca',pcaComp = 10)
-pca.predict.100 <- predict(object = pca.vote.100,data.vote.100)
-pca.predict.100 <- pca.predict.100[c(2,3,4,5,6,7,8,9,10,11,1)]
+library(dplyr)
+pca.vote.100 <- princomp(x = data.vote.100[-1],cor = TRUE,scores = TRUE)
+pca.predict.100 <- data.frame(predict(object = pca.vote.100,data[7:1328]))
+pca.predict.100 <- mutate(.data = pca.predict.100,Data.Party = data.vote.100$data.party)
 ```
 
+```{r Plotting the two extracted features for 100 votes}
+plot(x = pca.predict.100$Comp.1, y = pca.predict.100$Comp.2)
+points(x = pca.predict.100,pch = 21,col = ifelse(pca.predict.100$Data.Party == 'D','blue','red'))
+```
+
+```{r Varience across the features for 100 votes}
+plot(pca.vote.100,type = 'l')
+```
 
 #### Question 9
 
