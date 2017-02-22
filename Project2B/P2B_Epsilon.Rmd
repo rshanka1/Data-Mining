@@ -206,6 +206,7 @@ Note, this data is in a sense supervised, we know that party affiliation of each
 
 Repeat this analysis with a random sample of 100 votes from the 114th Congress. Also, show the amount of variance explained by the first 10 principal components. Comment on whether you should be able to predict a Congress person's party affiliation from their voting record.
 
+## Importing the data from ord file
 
 ```{r question9}
 library(wnominate)
@@ -221,11 +222,13 @@ summary(H114)
 data <- data.frame(H114$legis.data,H114$votes)
 ```
 
+## Ignoring the first five votes representing the U.S House of Representatives
 
 ```{r Ignoring first five votes}
 data <- data[-c(7,8,9,10,11)]
 ```
 
+## Sampling and scaling 20 votes from the dataset
 
 ```{r Randomly selecting 20 votes}
 data.vote.20 <- sample(x = data[7:1328],size = 20)
@@ -236,6 +239,7 @@ data.vote.20 <- data.frame(cbind(data$party,data.vote.20))
 data.vote.20[,2:21] <- scale(data.vote.20[,2:21],center = TRUE,scale = TRUE)
 ```
 
+## Perform Principal Component Analysis for 20 votes
 
 ```{r Applying PCA for 20 votes}
 library(dplyr)
@@ -244,6 +248,7 @@ pca.predict.20 <- data.frame(predict(object = pca.vote.20,data[7:1328]))
 pca.predict.20 <- mutate(.data = pca.predict.20,Data.Party = data.vote.20$data.party)
 ```
 
+## Plotting the extracted features and variences across the components
 
 ```{r Plotting the two extracted features for 20 votes}
 plot(x = pca.predict.20$Comp.1, y = pca.predict.20$Comp.2)
@@ -254,12 +259,15 @@ points(x = pca.predict.20,pch = 21,col = ifelse(pca.predict.20$Data.Party == 'D'
 plot(pca.vote.20,type = 'l')
 ```
 
+## Sampling and scaling 100 votes from the dataset
+
 ```{r Data sampling and scaling for 100 votes}
 data.vote.100 <- sample(x = data[7:1328],size = 100)
 data.vote.100 <- data.frame(cbind(data$party,data.vote.100))
 data.vote.100[,2:101] <- scale(data.vote.100[,2:101],center = TRUE,scale = TRUE)
 ```
 
+## Repeating Principal Component Analysis for 100 votes
 
 ```{r Data Preprocessing using PCA analysis for 100 votes}
 library(dplyr)
@@ -267,6 +275,8 @@ pca.vote.100 <- princomp(x = data.vote.100[-1],cor = TRUE,scores = TRUE)
 pca.predict.100 <- data.frame(predict(object = pca.vote.100,data[7:1328]))
 pca.predict.100 <- mutate(.data = pca.predict.100,Data.Party = data.vote.100$data.party)
 ```
+
+## Plotting the extracted features and variences across the components
 
 ```{r Plotting the two extracted features for 100 votes}
 plot(x = pca.predict.100$Comp.1, y = pca.predict.100$Comp.2)
