@@ -231,6 +231,7 @@ data <- data[-c(7,8,9,10,11)]
 ## Sampling and scaling 20 votes from the dataset
 
 ```{r Randomly selecting 20 votes}
+set.seed(1)
 data.vote.20 <- sample(x = data[7:1328],size = 20)
 data.vote.20 <- data.frame(cbind(data$party,data.vote.20))
 ```
@@ -251,17 +252,32 @@ pca.predict.20 <- mutate(.data = pca.predict.20,Data.Party = data.vote.20$data.p
 ## Plotting the extracted features and variences across the components
 
 ```{r Plotting the two extracted features for 20 votes}
-plot(x = pca.predict.20$Comp.1, y = pca.predict.20$Comp.2)
+plot(x = pca.predict.20$Comp.1, y = pca.predict.20$Comp.2,xlab = "PC1",ylab = "PC2",main = "Plotting PC1 and PC2")
 points(x = pca.predict.20,pch = 21,col = ifelse(pca.predict.20$Data.Party == 'D','blue','red'))
 ```
+
+```{r Using ggbiplot for PCA model1}
+library(devtools)
+#install_github("ggbiplot","vqv")
+library(ggbiplot)
+ggbiplot(pcobj = pca.vote.20,obs.scale = 1,var.scale = 1,groups = data.vote.20$data.party,ellipse = TRUE,circle = TRUE)+scale_color_manual(values = c("D" = "blue","R" = "red"))+ggtitle(label = "ggbiplot for PC1 and PC2")
+```
+
 
 ```{r Varience across the features for 20 votes}
 plot(pca.vote.20,type = 'l')
 ```
 
+## Comments on PCA based on 20 sampled votes
+
+```{r conclusion based on 20 votes}
+paste0("From the scatterplot,ggbiplot and varience, it is seen that PC1 accounts to 70.6% variance on the data with PC2 as 6.0% when analysing 20 sampled votes. Here, there is a definite segregation between the two parties based on their voting records. Hinojosa is a staunch democrat based on the component PC1 having high negative values and Hice is a staunch republican based on high positive values. Jones, Gibson and Davidson, being republicans are closer to the centre and hence neutral in voting records.")
+```
+
 ## Sampling and scaling 100 votes from the dataset
 
 ```{r Data sampling and scaling for 100 votes}
+set.seed(1)
 data.vote.100 <- sample(x = data[7:1328],size = 100)
 data.vote.100 <- data.frame(cbind(data$party,data.vote.100))
 data.vote.100[,2:101] <- scale(data.vote.100[,2:101],center = TRUE,scale = TRUE)
@@ -279,13 +295,27 @@ pca.predict.100 <- mutate(.data = pca.predict.100,Data.Party = data.vote.100$dat
 ## Plotting the extracted features and variences across the components
 
 ```{r Plotting the two extracted features for 100 votes}
-plot(x = pca.predict.100$Comp.1, y = pca.predict.100$Comp.2)
+plot(x = pca.predict.100$Comp.1, y = pca.predict.100$Comp.2,xlab = "PC1",ylab = "PC2",main = "Plotting PC1 and PC2")
 points(x = pca.predict.100,pch = 21,col = ifelse(pca.predict.100$Data.Party == 'D','blue','red'))
+```
+
+```{r Using ggbiplot for PCA model2}
+library(devtools)
+#install_github("ggbiplot","vqv")
+library(ggbiplot)
+ggbiplot(pcobj = pca.vote.100,obs.scale = 1,var.scale = 1,groups = data.vote.100$data.party,ellipse = TRUE,circle = TRUE)+scale_color_manual(values = c("D" = "blue","R" = "red"))+ggtitle(label = "ggbiplot for PC1 and PC2")
 ```
 
 ```{r Varience across the features for 100 votes}
 plot(pca.vote.100,type = 'l')
 ```
+
+## Comments on PCA based on 100 sampled votes
+
+```{r conclusion based on 100 votes}
+paste0("From the scatterplot,ggbiplot and varience, it is seen that PC1 accounts to 58.4% variance on the data with PC2 as 4.7% when analysing 100 sampled votes. Here Hanabusa and Evans, though democratic candidates has voting records similar to that of republicans. These data has contradictions between their party affiliations and voting records. Frankel is a staunch democrat based on the components PC1 and PC2 having high negative values. Peterson, being a democrat and Nunnelee, being a republican are closer to the centre and hence neutral in voting records.")
+```
+
 
 #### Question 10
 
