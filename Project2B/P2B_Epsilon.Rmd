@@ -245,16 +245,9 @@ data.vote.20[,2:21] <- scale(data.vote.20[,2:21],center = TRUE,scale = TRUE)
 ```{r Applying PCA for 20 votes}
 library(dplyr)
 pca.vote.20 <- princomp(x = data.vote.20[-1],cor = TRUE,scores = TRUE)
-pca.predict.20 <- data.frame(predict(object = pca.vote.20,data[7:1328]))
-pca.predict.20 <- mutate(.data = pca.predict.20,Data.Party = data.vote.20$data.party)
 ```
 
 ## Plotting the extracted features and variences across the components
-
-```{r Plotting the two extracted features for 20 votes}
-plot(x = pca.predict.20$Comp.1, y = pca.predict.20$Comp.2,xlab = "PC1",ylab = "PC2",main = "Plotting PC1 and PC2")
-points(x = pca.predict.20,pch = 21,col = ifelse(pca.predict.20$Data.Party == 'D','blue','red'))
-```
 
 ```{r Using ggbiplot for PCA model1}
 library(devtools)
@@ -288,16 +281,9 @@ data.vote.100[,2:101] <- scale(data.vote.100[,2:101],center = TRUE,scale = TRUE)
 ```{r Data Preprocessing using PCA analysis for 100 votes}
 library(dplyr)
 pca.vote.100 <- princomp(x = data.vote.100[-1],cor = TRUE,scores = TRUE)
-pca.predict.100 <- data.frame(predict(object = pca.vote.100,data[7:1328]))
-pca.predict.100 <- mutate(.data = pca.predict.100,Data.Party = data.vote.100$data.party)
 ```
 
 ## Plotting the extracted features and variences across the components
-
-```{r Plotting the two extracted features for 100 votes}
-plot(x = pca.predict.100$Comp.1, y = pca.predict.100$Comp.2,xlab = "PC1",ylab = "PC2",main = "Plotting PC1 and PC2")
-points(x = pca.predict.100,pch = 21,col = ifelse(pca.predict.100$Data.Party == 'D','blue','red'))
-```
 
 ```{r Using ggbiplot for PCA model2}
 library(devtools)
