@@ -21,6 +21,19 @@ installNewPackage <- function(packageName) {
         }
 }
 
+installNewPackage("wnominate")
+installNewPackage("dplyr")
+installNewPackage("devtools")
+installNewPackage("cluster")
+installNewPackage("protoclust")
+
+library(cluster)
+library(protoclust)
+library(wnominate)
+library(dplyr)
+library(devtools)
+# install_github("ggbiplot","vqv")
+library(ggbiplot)
 ```
 
 
@@ -35,8 +48,9 @@ installNewPackage <- function(packageName) {
 In R, you will use the clustering package cluster, consider using the methods diana and agnes. In Matlab, use the linkage, pdist, and cluster functions.
 
 
-```{r question7 Reading in the data}
-
+```{r question7}
+# Loading the data
+college <- read.csv("data/college_data.csv", header = T)
 ```
 
 
@@ -45,7 +59,26 @@ In R, you will use the clustering package cluster, consider using the methods di
 (8 points) First, perform agglomerative hierarchical clustering on the college data with complete linkage. Report the dendrogram.
 
 ```{r question7a}
+# Subsetting numeric variables
+college.use <- college[, -c(1:3)]
 
+# Computing mean for each column
+means <- apply(college.use, 2, mean)
+
+# Computing sd for each column
+sd <- apply(college.use, 2, sd)
+
+# Standardization (z-score)
+college.use <- scale(college.use, center=means, scale=sd)
+
+# Distance Matrix
+college.dist <- dist(college.use, method = "euclidean", diag = FALSE, upper = FALSE, p = 2)
+
+# Hierarchical Clustering by complete linkage
+college.hclust <- hclust(college.dist, method = "complete")
+
+# Plotting the Dendogram
+plot(college.hclust, labels = college$ShortHandName, main='Dendogram (Complete linkage)')
 ```
 
 
@@ -54,7 +87,35 @@ In R, you will use the clustering package cluster, consider using the methods di
 (16 points) Remove from consideration the following schools: CSU-Chico, Columbia, North-western, SFSU, Berkeley, UCDavis, UCSB, and WPI. Perform and report the dendrogram for agglomerative hierarchical clustering with complete, and average linkage.
 
 ```{r question7b}
+# Removing the colleges according to the question
+subset.college <- college[-c(2, 5, 11, 12, 15, 16, 18, 21), ]
 
+# Subsetting numeric variables
+subset.college.use <- subset.college[, -c(1:3)]
+
+# Computing mean for each column
+means <- apply(subset.college.use, 2, mean)
+
+# Computing sd for each column
+sd <- apply(subset.college.use, 2, sd)
+
+# Standardization (z-score)
+subset.college.use <- scale(subset.college.use, center=means, scale=sd)
+
+# Distance Matrix
+subset.college.dist <- dist(subset.college.use, method = "euclidean", diag = FALSE, upper = FALSE, p = 2)
+
+# Hierarchical Clustering by complete linkage
+complete.college.hclust <- hclust(subset.college.dist, method = "complete")
+
+# Plotting the Dendogram
+plot(complete.college.hclust, labels = subset.college$ShortHandName, main='Dendogram (Complete linkage)')
+
+# Hierarchical Clustering by average linkage
+average.college.hclust <- hclust(subset.college.dist, method = "average")
+
+# Plotting the Dendogram
+plot(average.college.hclust, labels = subset.college$ShortHandName, main='Dendogram (Average linkage)')
 ```
 
 
@@ -63,8 +124,29 @@ In R, you will use the clustering package cluster, consider using the methods di
 (12 points) Run the agglomerative hierarchical clustering with single linkage for the same data as in (b). Report the k = 3 cluster assignments.
 
 ```{r question7c}
+# Hierarchical Clustering by single linkage
+single.college.hclust <- hclust(subset.college.dist, method = "single")
 
+# Plotting the Dendogram
+plot(single.college.hclust, labels = subset.college$ShortHandName, main='Dendogram (Single linkage)')
+
+# Dendogram showing 3 clusters
+abline(h=3.7, lty=3, lwd=2)
+
+# Viewing the number of colleges in different clusters
+groups.3 <- cutree(single.college.hclust,3)
+table(groups.3)
 ```
+
+We see that there are 11 colleges in the 1st cluster while the clusters 2 and 3 have only one college.
+
+Clusters:
+
+Cluster 1: Stanford, CMU, MIT, CUNY, UDel, CalPoly, UCSD, CSUEB, SJSU, MTU, MSU
+
+Cluster 2: NYU
+
+Cluster 3: UMinn
 
 
 #### Question 7d
@@ -81,8 +163,35 @@ In R, you will use the clustering package cluster, consider using the methods di
 (12 points) Run kmeans clustering on the data of (b) and report the assignments with k=3 and compare to (c)
 
 ```{r question7e}
+# Setting the seed to get the same results as the initial cluster assignments are random
+set.seed(10)
 
+# k-Means Clustering
+kmeans.college.cluster <- kmeans(subset.college.use, 3, nstart = 10)
+
+# Looking at clusters formed by k-Means Clustering
+kmeans.college.cluster$cluster
 ```
+
+Let's compare these clustering results with single linkage hierarchical clustering. 
+
+kmeans Clustering results:
+
+Cluster 1: CalPoly, CSUEB, CUNY, MTU, MSU, SJSU, UDel
+
+Cluster 2: NYU, UCSD, UMinn
+
+Cluster 3: CMU, MIT, Stanford
+
+Single Linkage Hierarchical Clustering results:
+
+Cluster 1: Stanford, CMU, MIT, CUNY, UDel, CalPoly, UCSD, CSUEB, SJSU, MTU, MSU
+
+Cluster 2: NYU
+
+Cluster 3: UMinn
+
+The results of the kMeans Clustering seem to be better here as the Single linkage Hierarchical Clustering only shows 1 college in 2 of the clusters. Also, the Universities CMU, MIT and Stanford in 1 cluster in KMeans results makes more sense. 
 
 
 #### Question 7f
@@ -90,8 +199,33 @@ In R, you will use the clustering package cluster, consider using the methods di
 (12 points) Run kmediods clustering on the data of (b) and report the assignments with k=3 and compare to (e)
 
 ```{r question7f}
+# Loading the library cluster
+library(cluster)
 
+# PAM (Partitioning around Mediods)
+subset.college.pam <- pam(subset.college.dist, 3)
+
+# Looking at the results of KMediods Clustering
+subset.college.pam$clustering
 ```
+
+kMediods Clustering Results:
+
+Cluster 1: CalPoly, NYU, UCSD, UDel, UMinn
+
+Cluster 2: CSUEB, CUNY, MTU, MSU, SJSU
+
+Cluster 3: CMU, MIT, Stanford
+
+kmeans Clustering results:
+
+Cluster 1: CalPoly, CSUEB, CUNY, MTU, MSU, SJSU, UDel
+
+Cluster 2: NYU, UCSD, UMinn
+
+Cluster 3: CMU, MIT, Stanford
+
+If we look at the results carefully, only two colleges, i.e. UDel and CalPoly changed their clusters. If we want our clusters to have more equal number of colleges in each cluster, then we might prefer kMediods Clustering here. 
 
 
 #### Question 7g
@@ -99,7 +233,21 @@ In R, you will use the clustering package cluster, consider using the methods di
 (4 points (bonus)) Perform agglomerative hierarchical clustering with minimax linkage. Report the dendrogram.
 
 ```{r question7g}
+# Min-max Linkage
+minmax.college.hclust <- protoclust(subset.college.dist)
 
+# Choosing the number of clusters to be 3
+k <- 3
+
+# Dendogram for Minmax Linkage
+plot(minmax.college.hclust, labels = subset.college$ShortHandName, main = "Dendogram (Minmax linkage)")
+
+# Showing 3 clusters by Dendogram
+abline(h=4.8, lty=2)
+
+# Looking at results of Minmax Linkage
+cut <- protocut(minmax.college.hclust, k=k)
+cut$cl
 ```
 
 
@@ -206,115 +354,76 @@ Note, this data is in a sense supervised, we know that party affiliation of each
 
 Repeat this analysis with a random sample of 100 votes from the 114th Congress. Also, show the amount of variance explained by the first 10 principal components. Comment on whether you should be able to predict a Congress person's party affiliation from their voting record.
 
-## Importing the data from ord file
 
 ```{r question9}
-library(wnominate)
-
-H114 <- readKH("C:/Users/Raghavendran/Documents/CS 4821/Project2b/H114.ord")
+# Importing the data from ord file
+H114 <- readKH("data/H114.ord")
 
 summary(H114)
 
-```
-
-
-```{r Forming dataframe}
 data <- data.frame(H114$legis.data,H114$votes)
-```
 
-## Ignoring the first five votes representing the U.S House of Representatives
-
-```{r Ignoring first five votes}
+# Ignoring the first five votes representing the U.S House of Representatives
 data <- data[-c(7,8,9,10,11)]
-```
 
-## Sampling and scaling 20 votes from the dataset
-
-```{r Randomly selecting 20 votes}
+# Sampling and scaling 20 votes from the dataset
 set.seed(1)
 data.vote.20 <- sample(x = data[7:1328],size = 20)
 data.vote.20 <- data.frame(cbind(data$party,data.vote.20))
-```
 
-```{r Feature Scaling for 20 votes}
+# Feature Scaling for 20 votes
 data.vote.20[,2:21] <- scale(data.vote.20[,2:21],center = TRUE,scale = TRUE)
-```
 
-## Perform Principal Component Analysis for 20 votes
+# Perform Principal Component Analysis for 20 votes
 
-```{r Applying PCA for 20 votes}
-library(dplyr)
+# Applying PCA for 20 votes
+
 pca.vote.20 <- princomp(x = data.vote.20[-1],cor = TRUE,scores = TRUE)
 pca.predict.20 <- data.frame(predict(object = pca.vote.20,data[7:1328]))
 pca.predict.20 <- mutate(.data = pca.predict.20,Data.Party = data.vote.20$data.party)
-```
 
-## Plotting the extracted features and variences across the components
-
-```{r Plotting the two extracted features for 20 votes}
+# Plotting the extracted features and variences across the components
 plot(x = pca.predict.20$Comp.1, y = pca.predict.20$Comp.2,xlab = "PC1",ylab = "PC2",main = "Plotting PC1 and PC2")
 points(x = pca.predict.20,pch = 21,col = ifelse(pca.predict.20$Data.Party == 'D','blue','red'))
-```
 
-```{r Using ggbiplot for PCA model1}
-library(devtools)
-#install_github("ggbiplot","vqv")
-library(ggbiplot)
+# Using ggbiplot for PCA model1
 ggbiplot(pcobj = pca.vote.20,obs.scale = 1,var.scale = 1,groups = data.vote.20$data.party,ellipse = TRUE,circle = TRUE)+scale_color_manual(values = c("D" = "blue","R" = "red"))+ggtitle(label = "ggbiplot for PC1 and PC2")
-```
 
-
-```{r Varience across the features for 20 votes}
+# Varience across the features for 20 votes
 plot(pca.vote.20,type = 'l')
 ```
 
-## Comments on PCA based on 20 sampled votes
+**From the scatterplot,ggbiplot and varience, it is seen that PC1 accounts to 70.6% variance on the data with PC2 as 6.0% when analysing 20 sampled votes. Here, there is a definite segregation between the two parties based on their voting records. Hinojosa is a staunch democrat based on the component PC1 having high negative values and Hice is a staunch republican based on high positive values. Jones, Gibson and Davidson, being republicans are closer to the centre and hence neutral in voting records.**
 
-```{r conclusion based on 20 votes}
-paste0("From the scatterplot,ggbiplot and varience, it is seen that PC1 accounts to 70.6% variance on the data with PC2 as 6.0% when analysing 20 sampled votes. Here, there is a definite segregation between the two parties based on their voting records. Hinojosa is a staunch democrat based on the component PC1 having high negative values and Hice is a staunch republican based on high positive values. Jones, Gibson and Davidson, being republicans are closer to the centre and hence neutral in voting records.")
-```
 
-## Sampling and scaling 100 votes from the dataset
+##### Repeating Principal Component Analysis for 100 votes
 
-```{r Data sampling and scaling for 100 votes}
+```{r Sampling and scaling 100 votes from the dataset}
+# Data sampling and scaling for 100 votes
 set.seed(1)
 data.vote.100 <- sample(x = data[7:1328],size = 100)
 data.vote.100 <- data.frame(cbind(data$party,data.vote.100))
 data.vote.100[,2:101] <- scale(data.vote.100[,2:101],center = TRUE,scale = TRUE)
-```
 
-## Repeating Principal Component Analysis for 100 votes
-
-```{r Data Preprocessing using PCA analysis for 100 votes}
-library(dplyr)
+# Data Preprocessing using PCA analysis for 100 votes
 pca.vote.100 <- princomp(x = data.vote.100[-1],cor = TRUE,scores = TRUE)
 pca.predict.100 <- data.frame(predict(object = pca.vote.100,data[7:1328]))
 pca.predict.100 <- mutate(.data = pca.predict.100,Data.Party = data.vote.100$data.party)
-```
 
-## Plotting the extracted features and variences across the components
-
-```{r Plotting the two extracted features for 100 votes}
+# Plotting the extracted features and variences across the components
+# of the two extracted features for 100 votes
 plot(x = pca.predict.100$Comp.1, y = pca.predict.100$Comp.2,xlab = "PC1",ylab = "PC2",main = "Plotting PC1 and PC2")
 points(x = pca.predict.100,pch = 21,col = ifelse(pca.predict.100$Data.Party == 'D','blue','red'))
-```
 
-```{r Using ggbiplot for PCA model2}
-library(devtools)
-#install_github("ggbiplot","vqv")
-library(ggbiplot)
+# Using ggbiplot for PCA model2}
 ggbiplot(pcobj = pca.vote.100,obs.scale = 1,var.scale = 1,groups = data.vote.100$data.party,ellipse = TRUE,circle = TRUE)+scale_color_manual(values = c("D" = "blue","R" = "red"))+ggtitle(label = "ggbiplot for PC1 and PC2")
-```
 
-```{r Varience across the features for 100 votes}
+# Plotting the results
 plot(pca.vote.100,type = 'l')
 ```
 
-## Comments on PCA based on 100 sampled votes
 
-```{r conclusion based on 100 votes}
-paste0("From the scatterplot,ggbiplot and varience, it is seen that PC1 accounts to 58.4% variance on the data with PC2 as 4.7% when analysing 100 sampled votes. Here Hanabusa and Evans, though democratic candidates has voting records similar to that of republicans. These data has contradictions between their party affiliations and voting records. Frankel is a staunch democrat based on the components PC1 and PC2 having high negative values. Peterson, being a democrat and Nunnelee, being a republican are closer to the centre and hence neutral in voting records.")
-```
+**From the scatterplot,ggbiplot and varience, it is seen that PC1 accounts to 58.4% variance on the data with PC2 as 4.7% when analysing 100 sampled votes. Here Hanabusa and Evans, though democratic candidates has voting records similar to that of republicans. These data has contradictions between their party affiliations and voting records. Frankel is a staunch democrat based on the components PC1 and PC2 having high negative values. Peterson, being a democrat and Nunnelee, being a republican are closer to the centre and hence neutral in voting records.**
 
 
 #### Question 10
