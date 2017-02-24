@@ -437,10 +437,11 @@ library(curl)
 ```
 
 ```{r}
-#readLines(curl(url = "https://api.propublica.org/congress/v1/114/senate/sessions/2/votes/17.json",open = "",handle = "X-API-Key: PROPUBLICA_API_KEY"))
-
-ul <- GET(url = "http://api.propublica.org/congress/v1/104/house/sessions/1/votes.json")
+#readLines(curl(url = "https://api.propublica.org/congress/v1/114/senate/sessions/2/votes/17.json",open = "",handle = "X-API-Key: tq0HvAFRpeUYjJRXiEOS70mGhSgG8D44kKicsBv1"))
+HeaderValue = paste0("X-API-Key:tq0HvAFRpeUYjJRXiEOS70mGhSgG8D44kKicsBv1")
+ul <- GET(url = "http://api.propublica.org/congress/v1/104/house/sessions/1/votes.json",add_headers(Authorization = HeaderValue))
 info <- jsonlite::fromJSON(toJSON(content(ul)))
+info
 ```
 
 **End of assignemnt**
