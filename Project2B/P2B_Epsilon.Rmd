@@ -26,6 +26,10 @@ installNewPackage("dplyr")
 installNewPackage("devtools")
 installNewPackage("cluster")
 installNewPackage("protoclust")
+installNewPackage("httr")
+installNewPackage("jsonlite")
+installNewPackage("httpuv")
+installNewPackage("curlconverter")
 
 library(cluster)
 library(protoclust)
@@ -34,6 +38,10 @@ library(dplyr)
 library(devtools)
 # install_github("ggbiplot","vqv")
 library(ggbiplot)
+library(httr)
+library(jsonlite)
+library(httpuv)
+library(curlconverter)
 ```
 
 
@@ -432,6 +440,15 @@ plot(pca.vote.100,type = 'l')
 
 ```{r question10}
 
+# Refer this for the code
+# https://cran.r-project.org/web/packages/curlconverter/curlconverter.pdf
+
+curl <- "curl 'https://api.propublica.org/congress/v1/95/senate/sessions/1/votes/17.json' -H 'X-API-Key:tq0HvAFRpeUYjJRXiEOS70mGhSgG8D44kKicsBv1'"
+
+my_ip <- straighten(curl) %>% make_req()
+
+response <- content(my_ip[[1]](), as="parsed")
+response$results$votes
 ```
 
 
