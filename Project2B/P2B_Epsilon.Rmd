@@ -438,32 +438,20 @@ plot(pca.vote.100,type = 'l')
 (10 points (bonus)) Consider the Voting Data question above. Have the voting records of Congress always been so divided between party affiliation? Create a small multiples plot showing the results of PCA (colored by party) for the last 20 years. You will need to download prior Congress's roll calls from the sites indicated above.
 
 
-<<<<<<< HEAD
 ```{r Loading libraries}
-library(httr)
-library(jsonlite)
-library(curl)
-=======
-```{r question10}
-
 # Refer this for the code
 # https://cran.r-project.org/web/packages/curlconverter/curlconverter.pdf
 
-curl <- "curl 'https://api.propublica.org/congress/v1/95/senate/sessions/1/votes/17.json' -H 'X-API-Key:tq0HvAFRpeUYjJRXiEOS70mGhSgG8D44kKicsBv1'"
+curl <- "curl 'https://api.propublica.org/congress/v1/113/house/sessions/1/votes/17.json' -H 'X-API-Key:tq0HvAFRpeUYjJRXiEOS70mGhSgG8D44kKicsBv1'"
 
 my_ip <- straighten(curl) %>% make_req()
 
-response <- content(my_ip[[1]](), as="parsed")
-response$results$votes
->>>>>>> 2a18acf83e20cf09f0b74a9247830db55a48a494
+# response <- content(my_ip[[1]](), as="parsed")
+# response$results$votes
+
+results <- fromJSON(toJSON(content(my_ip[[1]](), as="parsed")))
+results
 ```
 
-```{r}
-#readLines(curl(url = "https://api.propublica.org/congress/v1/114/senate/sessions/2/votes/17.json",open = "",handle = "X-API-Key: tq0HvAFRpeUYjJRXiEOS70mGhSgG8D44kKicsBv1"))
-HeaderValue = paste0("X-API-Key:tq0HvAFRpeUYjJRXiEOS70mGhSgG8D44kKicsBv1")
-ul <- GET(url = "http://api.propublica.org/congress/v1/104/house/sessions/1/votes.json",add_headers(Authorization = HeaderValue))
-info <- jsonlite::fromJSON(toJSON(content(ul)))
-info
-```
 
 **End of assignemnt**
