@@ -443,12 +443,15 @@ plot(pca.vote.100,type = 'l')
 # Refer this for the code
 # https://cran.r-project.org/web/packages/curlconverter/curlconverter.pdf
 
-curl <- "curl 'https://api.propublica.org/congress/v1/95/senate/sessions/1/votes/17.json' -H 'X-API-Key:tq0HvAFRpeUYjJRXiEOS70mGhSgG8D44kKicsBv1'"
+curl <- "curl 'https://api.propublica.org/congress/v1/113/house/sessions/1/votes/17.json' -H 'X-API-Key:tq0HvAFRpeUYjJRXiEOS70mGhSgG8D44kKicsBv1'"
 
 my_ip <- straighten(curl) %>% make_req()
 
-response <- content(my_ip[[1]](), as="parsed")
-response$results$votes
+# response <- content(my_ip[[1]](), as="parsed")
+# response$results$votes
+
+results <- fromJSON(toJSON(content(my_ip[[1]](), as="parsed")))
+results
 ```
 
 
