@@ -375,7 +375,6 @@ data.vote.20 <- data.frame(cbind(data$party,data.vote.20))
 data.vote.20[,2:21] <- scale(data.vote.20[,2:21],center = TRUE,scale = TRUE)
 
 # Perform Principal Component Analysis for 20 votes
-
 # Applying PCA for 20 votes
 
 pca.vote.20 <- princomp(x = data.vote.20[-1],cor = TRUE,scores = TRUE)
