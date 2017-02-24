@@ -159,10 +159,17 @@ Cluster 3: UMinn
 
 #### Question 7d
 
-(10 points) Perform principal component analysis on the college data of (a). Plot the rst two principal component scores (labeling each point with the school it represents).
+(10 points) Perform principal component analysis on the college data of (a). Plot the first two principal component scores (labeling each point with the school it represents).
 
 ```{r question7d}
+## Perform PCA
+pc <- prcomp(college.use, scale = T)
 
+## Plotting the first 2 Principal components
+plot(pc$x[, 1], pc$x[, 2], main = "PCA", xlab = "PC1", ylab = "PC2")
+
+## Labelling by the school
+text(pc$x[,1] , pc$x[,2], labels = college$ShortHandName, pos = 1)
 ```
 
 
@@ -314,7 +321,8 @@ plot(music.hclust.single, labels = music$Artist, main='Dendogram labelled by Art
 plot(music.hclust.complete, labels = music$Artist, main='Dendogram labelled by Artist(Complete linkage)')
 ```
 
-#Reason Required
+
+**If we look at the clustering results of all the 4 methods above, we see that no method was able to separate all the groups. Neither were we able to separate all three Types into 3 clusters using complete/single linkage, nor were we able to separate seven artists into 7 clusters. But, looking at the dendogram, the complete linkage seems to be giving better results as the clusters seem to have equal number of points when we try to form less number of clusters. Here, no method seems to separate the groups well as we see that the first cluster in all the 4 results is very vague and contains everything. But, if we still have to choose one of these methods, we would go with separating type by complete linkage as this method atleast puts all the Classical Music into 1 cluster. But again that cluster also contains 22 Rock types. We might be able to separate all the 3 types using some other more complicated clustering methods like Chameleon, Birch, etc.**
 
 
 #### Question 9
@@ -440,18 +448,7 @@ plot(pca.vote.100,type = 'l')
 
 ```{r question10}
 
-# Refer this for the code
-# https://cran.r-project.org/web/packages/curlconverter/curlconverter.pdf
 
-curl <- "curl 'https://api.propublica.org/congress/v1/113/house/sessions/1/votes/17.json' -H 'X-API-Key:tq0HvAFRpeUYjJRXiEOS70mGhSgG8D44kKicsBv1'"
-
-my_ip <- straighten(curl) %>% make_req()
-
-# response <- content(my_ip[[1]](), as="parsed")
-# response$results$votes
-
-results <- fromJSON(toJSON(content(my_ip[[1]](), as="parsed")))
-results
 ```
 
 
