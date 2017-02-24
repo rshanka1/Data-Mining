@@ -308,9 +308,17 @@ paste0("From the scatterplot,ggbiplot and varience, it is seen that PC1 accounts
 (10 points (bonus)) Consider the Voting Data question above. Have the voting records of Congress always been so divided between party affiliation? Create a small multiples plot showing the results of PCA (colored by party) for the last 20 years. You will need to download prior Congress's roll calls from the sites indicated above.
 
 
-```{r question10}
-
+```{r Loading libraries}
+library(httr)
+library(jsonlite)
+library(curl)
 ```
 
+```{r}
+#readLines(curl(url = "https://api.propublica.org/congress/v1/114/senate/sessions/2/votes/17.json",open = "",handle = "X-API-Key: PROPUBLICA_API_KEY"))
+
+ul <- GET(url = "http://api.propublica.org/congress/v1/104/house/sessions/1/votes.json")
+info <- jsonlite::fromJSON(toJSON(content(ul)))
+```
 
 **End of assignemnt**
