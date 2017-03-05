@@ -9,22 +9,415 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r include=FALSE}
+# installing the packages
+# Function to Install packages
+# checks the available.packages before
+installNewPackage <- function(packageName) {
+        if(packageName  %in% rownames(installed.packages()) == FALSE)
+        {
+                install.packages(packageName, repos = "http://cran.us.r-project.org", dependencies=TRUE)
+        }
+}
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+# installNewPackage("wnominate")
+# installNewPackage("dplyr")
+# installNewPackage("devtools")
+# installNewPackage("cluster")
+# installNewPackage("protoclust")
+# installNewPackage("httr")
+# installNewPackage("jsonlite")
+# installNewPackage("httpuv")
+# installNewPackage("curlconverter")
+# 
+# library(cluster)
+# library(protoclust)
+# library(wnominate)
+# library(dplyr)
+# library(devtools)
+# library(ggbiplot)
+# library(httr)
+# library(jsonlite)
+# library(httpuv)
+# library(curlconverter)
+# 
+# # Comment it when your executing for second or the next time
+# # for faster running 
+# install_github("ggbiplot","vqv")
 ```
 
-## Including Plots
+#### Question 1
 
-You can also embed plots, for example:
+(24 points) Write a function that will evaluate the predictions of a classifier. That is, given a vector of predicted values, Y~pred~, and actual class values, Y~true~, can report the following quantities:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+* number of true positives (TP),
+* number of false positives (FP),
+* number of true negatives (TN),
+* number of false negatives (FN),
+* true positive rate (TPR),
+* true negative rate (TNR),
+* sensitivity (Sens.),
+* specificity (Spec.),
+* precision (Prec.),
+* recall (Rec.),
+* accuracy (Acc.), and
+* error rate (Err)
+
+
+```{r question1}
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+#### Question 2
+
+(20 points) For the following data set, you will compute the true positive rate, false positiverate, and accuracy (with the function you wrote for Prob. 1) using every predicted output as a possible threshold.
+
+
+Sample  |   Ytrue   |   Ypred
+--------|-----------|----------
+    1   |     1     |   0.98    
+    2   |     0     |   0.92
+    3   |     1     |   0.85
+    4   |     1     |   0.77
+    5   |     0     |   0.71
+    6   |     0     |   0.64
+    7   |     1     |   0.50
+    8   |     0     |   0.39
+    9   |     1     |   0.34
+    10  |     0     |   0.31
+
+
+```{r question2}
+
+```
+
+
+#### Question 3
+
+(10 points) Use the results from Prob. 2 to plot the ROC curve for the data. Note, plot this curve using the standard plotting tools rather than any special library/package available in R or Matlab.
+
+
+```{r question3}
+
+```
+
+#### Question 4
+
+(12 points) Data Mining Book, 8.14.
+
+Suppose that we want to select between two prediction models, M~1~ and M~2~. We have performed 10 rounds of 10-fold cross-validation on each model, where the same data partitioning in round i is used for both M~1~ and M~2~. The error rates obtained for M~1~ are 30.5, 32.2, 20.7, 20.6, 31.0, 41.0, 27.7, 26.0, 21.5, 26.0. The error rates for M~2~ are 22.4, 14.5, 22.4, 19.6, 20.7, 20.4, 22.1, 19.4, 16.2, 35.0. Comment on whether one model is significantly better than the other considering a significance level of 1%.
+
+
+```{r question4}
+
+```
+
+
+#### Question 5
+
+Suppose you are building a decision tree on a data set with three classes A;B;C. At the current position in the tree you have the following samples available:
+
+$$
+N = \left(\begin{array}{cc} 
+A & 100\\
+B & 50\\
+C & 60\\
+\end{array}\right)
+$$ 
+
+
+You are examining two ways to split the data. The first splits the data as,
+
+$$
+N~1,1~ = \left(\begin{array}{cc} 
+A & 62\\
+B & 8\\
+C & 0\\
+\end{array}\right)
+$$
+$$
+N~1,2~ = \left(\begin{array}{cc} 
+A & 38\\
+B & 42\\
+C & 60\\
+\end{array}\right)
+$$
+
+The second splits the data as,
+
+$$
+N~2,1~ = \left(\begin{array}{cc} 
+A & 65\\
+B & 20\\
+C & 0\\
+\end{array}\right)
+$$
+$$
+N~2,2~ = \left(\begin{array}{cc} 
+A & 21\\
+B & 19\\
+C & 20\\
+\end{array}\right)
+$$
+$$
+N~2,3~ = \left(\begin{array}{cc} 
+A & 14\\
+B & 11\\
+C & 40\\
+\end{array}\right)
+$$ 
+
+
+#### Question 5a
+
+(a) (18 points) Compute the gain in GINI index for the two splits. Show the form of the calculations, not just the final numbers.
+
+
+```{r question5a}
+
+```
+
+
+#### Question 5b
+
+(4 points) Which node would be preferred to include next in the decision tree?
+
+
+```{r question5b}
+
+```
+
+
+#### Question 5c
+
+(18 points) Compute the information gain (based on entropy) for the two splits. Show the form of the calculations, not just the final numbers.
+
+
+```{r question5c}
+
+```
+
+
+#### Question 5d
+
+(4 points) Which node would be preferred to include next in the decision tree?
+
+
+```{r question5d}
+
+```
+
+
+#### Question 6
+
+#### Classification of Age based on Social Media Usage
+
+For this problem, you want to classify the age of an individual ("High School" or "Adult") basic on their social media app usage. The data was collected via a survey, with respondents consisting of the Women in Computing Sciences Summer Youth Program participants and female faculty at Michigan Tech. The data is available at syp-s16-data.csv. There are 60 responses with 26 Adults and 34 HS respondents.
+
+
+#### Question 6a
+
+(12 points) Create a small multiples plot showing the number of respondents who use or do not use each app grouped by age. Consider making grouped bar plots.
+
+
+```{r question6a}
+
+```
+
+
+#### Question 6b
+
+(4 points) From the figures in (a), which of the apps would you expect to find at the root of a deicision tree? that is, which app (variable) would be best to separate the two classes of responses?
+
+
+```{r question6b}
+
+```
+
+
+#### Question 6c
+
+(10 points) Construct a decision tree using this data set. Does the variable at the root of the tree match the intuition from part (b)?
+
+
+```{r question6c}
+
+```
+
+
+#### Question 7
+
+#### Classification of Spam: Trees
+
+For this problem, you will work to classify e-mail messages as spam or not. The data set to be used is given with the project (note, this is not the same spam data set that is available from UCI ML repository).
+
+
+#### Question 7a
+
+Load in the spam data. You should not include the following columns in the classification task: isuid, id, domain, spampct, category, and cappct.
+
+
+```{r question7a}
+
+```
+
+
+#### Question 7b
+
+(4 points) Split the data into a training and test set with an 80/20 split of the data.
+
+
+```{r question7b}
+
+```
+
+
+#### Question 7c
+
+(8 points) Construct a classication tree to predict spam on the training data.
+
+For R users, consider using the rpart library. Try using the default parameters of the software package. Understand how the decision tree is represented in R.
+
+For Matlab users, consider using the Statistics Toolbox. This toolbox has several functions available for machine learning methods including classification trees.
+
+
+```{r question7c}
+
+```
+
+
+#### Question 7d
+
+(6 points) Describe the tree that is constructed (print or plot the tree). How many terminal leaves does the tree have? What is the total number of nodes in the tree?
+
+
+```{r question7d}
+
+```
+
+
+#### Question 7e
+
+(6 points) Estimate the performance of the decision tree on the training set and the testing set. Report accuracy, error rate, and AUC using a threshold of 0.5.
+
+
+```{r question7e}
+
+```
+
+
+#### Question 7f
+
+(8 points) Try pruning the tree, explore 2 other sized tree and report the classification performance in either case.
+
+
+```{r question7f}
+
+```
+
+
+#### Question 8
+
+#### Classification of Music Popularity
+
+For this problem, you will work to classify a song's popularity. Specifically, you will develop methods to predict whether a song will make the Top10 of Billboard's Hot 100 Chart. The data set consists of song from the Top10 of Billboard's Hot 100 Chart from 1990-2010 along with a sampling of other songs that did not make the list1.
+
+The variables included in the data set include several description of the song and artist (including song title and id numbers), the year the song was released. Additionally, several variables describe the song attributes: time signature, loudness, tempo, key, energy pitch, and timbre (measured of different sections of the song). The last variable is binary indicated whether the song was in the Top10 or not.
+
+You will use the variables of the song attributes (excluding the variables involving confidence in that attribute, e.g., key condence) to predict whether the song will be popular or not.
+
+
+#### Question 8a
+
+Load in the music data. You should not use the artist or song title and IDs in the
+prediction along with the condence variables.
+
+
+```{r question8a}
+
+```
+
+
+#### Question 8b
+
+Prepare the data for a 10-fold cross-validation. Ensure that each split of the data has a balanced distribution of class labels.
+
+
+```{r question8b}
+
+```
+
+
+#### Question 8c
+
+(15 points) Use kNN to predict whether a song is a hit. Estimate the generalization performance over the 10-folds, calculate and report the accuracy, error, and AUC performance on the testing data. Show these results for three values of k = 1; 3; 5; 7; 9.
+
+
+```{r question8c}
+
+```
+
+
+#### Question 8d
+
+(12 points) Use decision trees to predict whether a song is a hit. Estimate the generalization performance over the 10-folds, calculate and report the accuracy, error, and AUC performance on the testing data. Show the results for two different sized decision trees (consider different amounts of pruning).
+
+
+```{r question8d}
+
+```
+
+
+#### Question 8e
+
+(15 points) Use a Naive Bayes classifier to predict whether a song is a hit. Calculate and report the accuracy, error, and AUC performance on the testing data.
+
+
+```{r question8e}
+
+```
+
+
+#### Question 8f
+
+(15 points) Use Random Forests to predict whether a song is a hit. Calculate and report the accuracy, error, and AUC performance on the testing data.
+
+
+```{r question8f}
+
+```
+
+
+#### Question 8g
+
+(20 points) Learn a support vector machine (SVM) with a RBF kernel to predict whether the song is a hit. Consider at least the following values for cost: 0.01, 0.1, 1, 10, 100. Calculate and report the accuracy, error, and AUC performance on the testing data for the best model found.
+
+
+```{r question8g}
+
+```
+
+
+#### Question 8h
+
+(5 points) Discuss whether the selection of the negative samples included in the data set may influence the results.
+
+
+```{r question8h}
+
+```
+
+
+#### Question 8i
+
+(5 points (bonus)) Re-run the analysis in (c) using a nested cross-validation to determine the best value of k and to determine the best parameters of the SVM.
+
+
+```{r question8i}
+
+```
+
+
+**End of the assignment**
