@@ -36,12 +36,15 @@ library(protoclust)
 library(wnominate)
 library(dplyr)
 library(devtools)
-# install_github("ggbiplot","vqv")
 library(ggbiplot)
 library(httr)
 library(jsonlite)
 library(httpuv)
 library(curlconverter)
+
+# Comment it when your executing for second or the next time
+# for faster running 
+install_github("ggbiplot","vqv")
 ```
 
 
@@ -322,6 +325,45 @@ plot(music.hclust.complete, labels = music$Artist, main='Dendogram labelled by A
 ```
 
 
+**Now, let's try to compare all the clustering methods.**
+
+**Here, we are asked to label by Type and Artist. But, we know that if we consider grouping by type, we have 3 clusters and if we consider grouping by Artist, we have 7 clusters, as the labels are already given in the dataset (Note that in an unsupervised learning problem like Clustering, these labels are unknown and we wouldn't know how many groups exist in the data). So let's try to form 3 clusters and 7 clusters by using both single linkage and complete linkage and try to see whether we can actually separate these groups.**
+
+```{r}
+## Number of unique types in the data
+length(unique(music$Type))
+
+## Number of unique artists in the data
+length(unique(music$Artist))
+
+#### Comparing all the clusters
+
+## Using 3 clusters for complete linkage
+complete.linkage.clusterCut1 <- cutree(music.hclust.complete, 3)
+
+## Looking at the results labelling by type to see whether we can actually separate all 3 types using complete linkage
+table(complete.linkage.clusterCut1, music$Type)
+
+## Using 7 clusters for complete linkage
+complete.linkage.clusterCut2 <- cutree(music.hclust.complete, 7)
+
+## Looking at the results labelling by artist to see whether we can actually separate all 7 artists using complete linkage
+table(complete.linkage.clusterCut2, music$Artist)
+
+## Using 3 clusters for single linkage
+single.linkage.clusterCut1 <- cutree(music.hclust.single, 3)
+
+## Looking at the results labelling by type to see whether we can actually separate all 3 types using single linkage
+table(single.linkage.clusterCut1, music$Type)
+
+## Using 7 clusters for single linkage
+single.linkage.clusterCut2 <- cutree(music.hclust.single, 7)
+
+## Looking at the results labelling by artist to see whether we can actually separate all 7 artists using single linkage
+table(single.linkage.clusterCut2, music$Artist)
+```
+
+
 **If we look at the clustering results of all the 4 methods above, we see that no method was able to separate all the groups. Neither were we able to separate all three Types into 3 clusters using complete/single linkage, nor were we able to separate seven artists into 7 clusters. But, looking at the dendogram, the complete linkage seems to be giving better results as the clusters seem to have equal number of points when we try to form less number of clusters. Here, no method seems to separate the groups well as we see that the first cluster in all the 4 results is very vague and contains everything. But, if we still have to choose one of these methods, we would go with separating type by complete linkage as this method atleast puts all the Classical Music into 1 cluster. But again that cluster also contains 22 Rock types. We might be able to separate all the 3 types using some other more complicated clustering methods like Chameleon, Birch, etc.**
 
 
@@ -447,9 +489,50 @@ plot(pca.vote.100,type = 'l')
 
 
 ```{r question10}
+# H.ord files function
+House.func <- function(x){
+    # Importing the data from ord file
+    H.ord <- readKH(paste0("data/congress/",x))
+    summary(H.ord)
+    data.ord <- data.frame(H.ord$legis.data,H.ord$votes)
+    
+    # Ignoring the first five votes representing the U.S House of Representatives
+    data.ord <- data.ord[-c(7,8,9,10,11)]
+    col <- ncol(data.ord)
+    
+    # Sampling and scaling 100 votes from the dataset
+    set.seed(1)
+    data.vote.100 <- sample(x = data.ord[7:col],size = 100)
+    data.vote.100$party <- data.ord$party
+    
+    data.vote.100[,1:100] <- scale(data.vote.100[,1:100],center = TRUE,scale = TRUE)
+    
+    # Data Preprocessing using PCA analysis for 100 votes
+    pca.vote.100 <- princomp(x = data.vote.100[-101],cor = TRUE,scores = TRUE)
+    
+    # Using ggbiplot for PCA model2}
+    ggbiplot(pcobj = pca.vote.100,obs.scale = 1,var.scale = 1,groups = data.vote.100$party,ellipse = TRUE,circle = TRUE)+scale_color_manual(values = c("D" = "blue","R" = "red","Indep" = "black"))+ggtitle(label = "ggbiplot for PC1 and PC2")
+    
+    # Plotting the varience
+    plot(pca.vote.100,type = 'l')
+}
 
+# Calling the functions
+House.func("house_104.ord")
+House.func("house_105.ord")
+House.func("house_106.ord")
+House.func("house_107.ord")
+House.func("house_108.ord")
+House.func("house_109.ord")
+House.func("house_110.ord")
+House.func("house_111.ord")
+House.func("house_112.ord")
+House.func("house_113.ord")
+House.func("house_114.ord")
 
 ```
+
+**From the ggbiplots, it is seen that the voting records is not divided between the party's affiliation for all the congress in House for the past 20 years as some democrats have similar voting records to that of the republicans as shown from the plot**
 
 
 **End of assignemnt**
