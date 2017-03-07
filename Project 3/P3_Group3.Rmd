@@ -21,7 +21,7 @@ installNewPackage <- function(packageName) {
         }
 }
 
-# installNewPackage("wnominate")
+installNewPackage("ROCR")
 # installNewPackage("dplyr")
 # installNewPackage("devtools")
 # installNewPackage("cluster")
@@ -30,8 +30,8 @@ installNewPackage <- function(packageName) {
 # installNewPackage("jsonlite")
 # installNewPackage("httpuv")
 # installNewPackage("curlconverter")
-# 
-# library(cluster)
+
+library(ROCR)
 # library(protoclust)
 # library(wnominate)
 # library(dplyr)
@@ -66,31 +66,207 @@ installNewPackage <- function(packageName) {
 
 
 ```{r question1}
+# Creting S4 object for the predcition evaluation
+setClass("prediction", representation(predictions = "list", labels = "list", cutoffs = "list",
+                                      fp = "list", tp = "list", tn = "list", fn = "list", 
+                                      n.pos = "list", n.neg = "list", n.pos.pred = "list",
+                                      n.neg.pred = "list", tpr = "numeric", fpr = "numeric", 
+                                      tnr = "numeric", fnr = "numeric", sensitivity = "numeric",
+                                      specificity = "numeric", precision = "numeric", 
+                                      recall = "numeric", accuracy = "numeric", error_rate = "numeric"))
 
+# Function to Evaluate the prediction
+# Returns the necessary measures depeing 
+# upon the passed argument
+predictions <- function (predictions, labels, label.ordering = NULL) {
+    # Check if data frame
+    if (is.data.frame(predictions)) {
+        names(predictions) <- c()
+        predictions <- as.list(predictions)
+    }
+    # Check if it is matrix
+    else if (is.matrix(predictions)) {
+        predictions <- as.list(data.frame(predictions))
+        names(predictions) <- c()
+    }
+    # Check if it is Vector
+    else if (is.vector(predictions) && !is.list(predictions)) {
+        predictions <- list(predictions)
+    }
+    # Stop if prediction is not of type list
+    else if (!is.list(predictions)) {
+        stop("Format of predictions is invalid.")
+    }
+    # Assign the labels
+    if (is.data.frame(labels)) {
+        names(labels) <- c()
+        labels <- as.list(labels)
+    }
+    else if (is.matrix(labels)) {
+        labels <- as.list(data.frame(labels))
+        names(labels) <- c()
+    }
+    else if ((is.vector(labels) || is.ordered(labels) || is.factor(labels)) && 
+        !is.list(labels)) {
+        labels <- list(labels)
+    }
+    # Stop if labels is not of type list
+    else if (!is.list(labels)) {
+        stop("Format of labels is invalid.")
+    }
+    # Length check for single and multiple evaluations
+    if (length(predictions) != length(labels)) 
+        stop(paste("Number of cross-validation runs must be equal", 
+            "for predictions and labels."))
+    if (!all(sapply(predictions, length) == sapply(labels, length))) 
+        stop(paste("Number of predictions in each run must be equal", 
+            "to the number of labels for each run."))
+    
+    for (i in 1:length(predictions)) {
+        finite.bool <- is.finite(predictions[[i]])
+        predictions[[i]] <- predictions[[i]][finite.bool]
+        labels[[i]] <- labels[[i]][finite.bool]
+    }
+    
+    label.format = ""
+    
+    # Assign label fotmat for each type
+    if (all(sapply(labels, is.factor)) && !any(sapply(labels, 
+        is.ordered))) {
+        label.format <- "factor"
+    }
+    else if (all(sapply(labels, is.ordered))) {
+        label.format <- "ordered"
+    }
+    else if (all(sapply(labels, is.character)) || all(sapply(labels, 
+        is.numeric)) || all(sapply(labels, is.logical))) {
+        label.format <- "normal"
+    }
+    else {
+        stop(paste("Inconsistent label data type across different", 
+            "cross-validation runs."))
+    }
+    if (!all(sapply(labels, levels) == levels(labels[[1]]))) {
+        stop(paste("Inconsistent factor levels across different", 
+            "cross-validation runs."))
+    }
+    levels <- c()
+    if (label.format == "ordered") {
+        if (!is.null(label.ordering)) {
+            stop(paste("'labels' is already ordered. No additional", 
+                "'label.ordering' must be supplied."))
+        }
+        else {
+            levels <- levels(labels[[1]])
+        }
+    }
+    else {
+        if (is.null(label.ordering)) {
+            if (label.format == "factor") 
+                levels <- sort(levels(labels[[1]]))
+            else levels <- sort(unique(unlist(labels)))
+        }
+        else {
+            if (!setequal(unique(unlist(labels)), label.ordering)) {
+                stop("Label ordering does not match class labels.")
+            }
+            levels <- label.ordering
+        }
+        for (i in 1:length(labels)) {
+            if (is.factor(labels)) 
+                labels[[i]] <- ordered(as.character(labels[[i]]), 
+                  levels = levels)
+            else labels[[i]] <- ordered(labels[[i]], levels = levels)
+        }
+    }
+    if (length(levels) != 2) {
+        message <- paste("Number of classes is not equal to 2.\n", 
+            "ROCR currently supports only evaluation of ", "binary classification tasks.", 
+            sep = "")
+        stop(message)
+    }
+    if (!is.numeric(unlist(predictions))) {
+        stop("Currently, only continuous predictions are supported by ROCR.")
+    }
+    
+    # Intailizing empty list
+    cutoffs <- list()
+    fp <- list()
+    tp <- list()
+    fn <- list()
+    tn <- list()
+    n.pos <- list()
+    n.neg <- list()
+    n.pos.pred <- list()
+    n.neg.pred <- list()
+    
+    # Loop to perform the caluclation for evaluation metrics
+    for (i in 1:length(predictions)) {
+        n.pos <- c(n.pos, sum(labels[[i]] == levels[2]))
+        n.neg <- c(n.neg, sum(labels[[i]] == levels[1]))
+        ans <- .compute.unnormalized.roc.curve(predictions[[i]], 
+            labels[[i]])
+        cutoffs <- c(cutoffs, list(ans$cutoffs))
+        fp <- c(fp, list(ans$fp))
+        tp <- c(tp, list(ans$tp))
+        fn <- c(fn, list(n.pos[[i]] - tp[[i]]))
+        tn <- c(tn, list(n.neg[[i]] - fp[[i]]))
+        n.pos.pred <- c(n.pos.pred, list(tp[[i]] + fp[[i]]))
+        n.neg.pred <- c(n.neg.pred, list(tn[[i]] + fn[[i]]))
+    }
+    tpr <- tp[[1]] / max(tp[[1]])
+    fpr <- fp[[1]] / max(fp[[1]])
+    tnr <- tn[[1]] / max(tn[[1]])
+    fnr <- fn[[1]] / max(fn[[1]])
+    sensitivity <- tp[[1]] / (tp[[1]] + fn[[1]]) 
+    specificity <- tn[[1]] / (fp[[1]] + tn[[1]])
+    precision <- tp[[1]] / (tp[[1]] + fp[[1]])
+    accuracy <- (tp[[1]] + tn[[1]]) / (tp[[1]] + fp[[1]] + fn[[1]] + tn[[1]])
+    error_rate <- 1 - accuracy
+    
+    return(new("prediction", predictions = predictions, labels = labels, 
+        cutoffs = cutoffs, fp = fp, tp = tp, fn = fn, tn = tn, 
+        n.pos = n.pos, n.neg = n.neg, n.pos.pred = n.pos.pred, 
+        n.neg.pred = n.neg.pred, tpr = tpr, fpr = fpr, tnr = tnr, fnr = fnr,
+        sensitivity = sensitivity, specificity = specificity, precision = precision,
+        recall = sensitivity, accuracy = accuracy, error_rate = error_rate))
+}
 ```
 
 
 #### Question 2
 
-(20 points) For the following data set, you will compute the true positive rate, false positiverate, and accuracy (with the function you wrote for Prob. 1) using every predicted output as a possible threshold.
+(20 points) For the following data set, you will compute the true positive rate, false positive rate, and accuracy (with the function you wrote for Prob. 1) using every predicted output as a possible threshold.
 
 
-Sample  |   Ytrue   |   Ypred
---------|-----------|----------
-    1   |     1     |   0.98    
-    2   |     0     |   0.92
-    3   |     1     |   0.85
-    4   |     1     |   0.77
-    5   |     0     |   0.71
-    6   |     0     |   0.64
-    7   |     1     |   0.50
-    8   |     0     |   0.39
-    9   |     1     |   0.34
-    10  |     0     |   0.31
+Sample  |   Y~true~   |   Y~Pred~
+--------|-------------|------------
+    1   |      1      |   0.98    
+    2   |      0      |   0.92
+    3   |      1      |   0.85
+    4   |      1      |   0.77
+    5   |      0      |   0.71
+    6   |      0      |   0.64
+    7   |      1      |   0.50
+    8   |      0      |   0.39
+    9   |      1      |   0.34
+    10  |      0      |   0.31
 
 
 ```{r question2}
+# Assigning the given data to varibles
+y_true <- c(1, 0, 1, 1, 0 ,0, 1, 0, 1, 0)
+y_pred <- c(0.98, 0.92, 0.85, 0.77, 0.71, 0.64, 0.50, 0.39, 0.34, 0.31)
 
+# Calling the prediction function
+pred <- predictions(y_pred, y_true)
+
+# Creating dataframe for the required result
+result_q2 <- data.frame(true.positve.rate = pred@tpr[-1], false.positive.rate = pred@fpr[-1],
+                        accuracy = pred@accuracy[-1])
+
+# Printing the reults
+result_q2
 ```
 
 
@@ -100,7 +276,9 @@ Sample  |   Ytrue   |   Ypred
 
 
 ```{r question3}
-
+# Plotting the ROC curve for the data
+plot(result_q2$false.positive.rate, result_q2$true.positve.rate, type = "l", col = "red")
+abline(a=0, b=1)
 ```
 
 #### Question 4
