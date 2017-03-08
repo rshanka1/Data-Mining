@@ -22,8 +22,8 @@ installNewPackage <- function(packageName) {
 }
 
 installNewPackage("ROCR")
-# installNewPackage("dplyr")
-# installNewPackage("devtools")
+installNewPackage("plyr")
+installNewPackage("caret")
 # installNewPackage("cluster")
 # installNewPackage("protoclust")
 # installNewPackage("httr")
@@ -32,8 +32,8 @@ installNewPackage("ROCR")
 # installNewPackage("curlconverter")
 
 library(ROCR)
-# library(protoclust)
-# library(wnominate)
+library(pylr)
+library(caret)
 # library(dplyr)
 # library(devtools)
 # library(ggbiplot)
@@ -504,17 +504,17 @@ For this problem, you will work to classify a song's popularity. Specifically, y
 
 The variables included in the data set include several description of the song and artist (including song title and id numbers), the year the song was released. Additionally, several variables describe the song attributes: time signature, loudness, tempo, key, energy pitch, and timbre (measured of different sections of the song). The last variable is binary indicated whether the song was in the Top10 or not.
 
-You will use the variables of the song attributes (excluding the variables involving confidence in that attribute, e.g., key condence) to predict whether the song will be popular or not.
+You will use the variables of the song attributes (excluding the variables involving confidence in that attribute, e.g., key confidence) to predict whether the song will be popular or not.
 
 
 #### Question 8a
 
-Load in the music data. You should not use the artist or song title and IDs in the
-prediction along with the condence variables.
+Load in the music data. You should not use the artist or song title and IDs in the prediction along with the confidence variables.
 
 
 ```{r question8a}
-
+# Loading the music data
+music <- read.csv("data/music.csv")
 ```
 
 
@@ -524,7 +524,33 @@ Prepare the data for a 10-fold cross-validation. Ensure that each split of the d
 
 
 ```{r question8b}
+# Data preprocessing for 10 fold cross validation
 
+# Setting the seed for reproduciablility
+set.seed(294)
+
+# NO of fold
+n_fold <- 10
+
+# Creating the folds variable in the data frame
+music$folds <- createFolds(music$Top10, k = 10, list = FALSE)
+
+# Checking the class label proportions
+for(i in 1:n_fold) {
+    fold <- music$Top10[music$folds == i]
+    fold_length <- length(fold)
+    class0_prop <- round(length(fold[fold == 0]) / fold_length, 2)
+    class1_prop <- round(length(fold[fold == 1]) /  fold_length, 2)
+    print(paste("Fold" , i , "length", fold_length, sep = " "))
+    print(paste("Class Label(0)", round(class0_prop, 2), sep = " "))
+    print(paste("Class Label(1)", round(class1_prop, 2), sep = " "))
+}
+
+# Creating the 10 data frames from the folds
+music_10fold_list <- list()
+for(i in 1:n_fold)  {
+    music_10fold_list <- list(music_10fold_list, music[music$folds == i,])
+}
 ```
 
 
@@ -534,6 +560,10 @@ Prepare the data for a 10-fold cross-validation. Ensure that each split of the d
 
 
 ```{r question8c}
+# Setting the k values for KNN
+k_values <- c(1, 3, 5, 7, 9)
+
+
 
 ```
 
