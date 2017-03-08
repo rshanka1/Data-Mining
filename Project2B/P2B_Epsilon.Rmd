@@ -36,7 +36,7 @@ library(protoclust)
 library(wnominate)
 library(dplyr)
 library(devtools)
-# install_github("ggbiplot","vqv")
+install_github("ggbiplot","vqv")
 library(ggbiplot)
 library(httr)
 library(jsonlite)
@@ -383,15 +383,7 @@ data.vote.20 <- data.frame(cbind(data$party,data.vote.20))
 data.vote.20[,2:21] <- scale(data.vote.20[,2:21],center = TRUE,scale = TRUE)
 
 # Perform Principal Component Analysis for 20 votes
-# Applying PCA for 20 votes
-
 pca.vote.20 <- princomp(x = data.vote.20[-1],cor = TRUE,scores = TRUE)
-pca.predict.20 <- data.frame(predict(object = pca.vote.20,data[7:1328]))
-pca.predict.20 <- mutate(.data = pca.predict.20,Data.Party = data.vote.20$data.party)
-
-# Plotting the extracted features and variences across the components
-plot(x = pca.predict.20$Comp.1, y = pca.predict.20$Comp.2,xlab = "PC1",ylab = "PC2",main = "Plotting PC1 and PC2")
-points(x = pca.predict.20,pch = 21,col = ifelse(pca.predict.20$Data.Party == 'D','blue','red'))
 
 # Using ggbiplot for PCA model1
 ggbiplot(pcobj = pca.vote.20,obs.scale = 1,var.scale = 1,groups = data.vote.20$data.party,ellipse = TRUE,circle = TRUE)+scale_color_manual(values = c("D" = "blue","R" = "red"))+ggtitle(label = "ggbiplot for PC1 and PC2")
@@ -414,13 +406,6 @@ data.vote.100[,2:101] <- scale(data.vote.100[,2:101],center = TRUE,scale = TRUE)
 
 # Data Preprocessing using PCA analysis for 100 votes
 pca.vote.100 <- princomp(x = data.vote.100[-1],cor = TRUE,scores = TRUE)
-pca.predict.100 <- data.frame(predict(object = pca.vote.100,data[7:1328]))
-pca.predict.100 <- mutate(.data = pca.predict.100,Data.Party = data.vote.100$data.party)
-
-# Plotting the extracted features and variences across the components
-# of the two extracted features for 100 votes
-plot(x = pca.predict.100$Comp.1, y = pca.predict.100$Comp.2,xlab = "PC1",ylab = "PC2",main = "Plotting PC1 and PC2")
-points(x = pca.predict.100,pch = 21,col = ifelse(pca.predict.100$Data.Party == 'D','blue','red'))
 
 # Using ggbiplot for PCA model2}
 ggbiplot(pcobj = pca.vote.100,obs.scale = 1,var.scale = 1,groups = data.vote.100$data.party,ellipse = TRUE,circle = TRUE)+scale_color_manual(values = c("D" = "blue","R" = "red"))+ggtitle(label = "ggbiplot for PC1 and PC2")
@@ -439,19 +424,48 @@ plot(pca.vote.100,type = 'l')
 
 
 ```{r Loading libraries}
-# Refer this for the code
-# https://cran.r-project.org/web/packages/curlconverter/curlconverter.pdf
+# H.ord files function
+House.func <- function(x){
+# Importing the data from ord file
+H.ord <- readKH(paste0("C:/Users/Raghavendran/Documents/CS 4821/Project2b/",x))
 
-curl <- "curl 'https://api.propublica.org/congress/v1/113/house/sessions/1/votes/17.json' -H 'X-API-Key:tq0HvAFRpeUYjJRXiEOS70mGhSgG8D44kKicsBv1'"
+summary(H.ord)
 
-my_ip <- straighten(curl) %>% make_req()
+data.ord <- data.frame(H.ord$legis.data,H.ord$votes)
 
-# response <- content(my_ip[[1]](), as="parsed")
-# response$results$votes
+# Ignoring the first five votes representing the U.S House of Representatives
+data.ord <- data.ord[-c(7,8,9,10,11)]
+col <- ncol(data.ord)
+# Sampling and scaling 100 votes from the dataset
+set.seed(1)
+data.vote.100 <- sample(x = data.ord[7:col],size = 100)
+data.vote.100$party <- data.ord$party
 
-results <- fromJSON(toJSON(content(my_ip[[1]](), as="parsed")))
-results
+data.vote.100[,1:100] <- scale(data.vote.100[,1:100],center = TRUE,scale = TRUE)
+
+# Data Preprocessing using PCA analysis for 100 votes
+pca.vote.100 <- princomp(x = data.vote.100[-101],cor = TRUE,scores = TRUE)
+
+# Using ggbiplot for PCA model2}
+ggbiplot(pcobj = pca.vote.100,obs.scale = 1,var.scale = 1,groups = data.vote.100$party,ellipse = TRUE,circle = TRUE)+scale_color_manual(values = c("D" = "blue","R" = "red","Indep" = "black"))+ggtitle(label = "ggbiplot for PC1 and PC2")
+
+# Plotting the varience
+plot(pca.vote.100,type = 'l')
+}
+House.func("house_104.ord")
+House.func("house_105.ord")
+House.func("house_106.ord")
+House.func("house_107.ord")
+House.func("house_108.ord")
+House.func("house_109.ord")
+House.func("house_110.ord")
+House.func("house_111.ord")
+House.func("house_112.ord")
+House.func("house_113.ord")
+House.func("H114.ord")
 ```
+
+**From the ggbiplots, it is seen that the voting records is not divided between the party's affiliation for all the congress in House for the past 20 years as some democrats have similar voting records to that of the republicans as shown from the plot
 
 
 **End of assignemnt**
