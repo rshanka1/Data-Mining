@@ -24,7 +24,8 @@ installNewPackage <- function(packageName) {
 installNewPackage("ROCR")
 installNewPackage("plyr")
 installNewPackage("caret")
-# installNewPackage("cluster")
+installNewPackage("class")
+installNewPackage("MLmetrics")
 # installNewPackage("protoclust")
 # installNewPackage("httr")
 # installNewPackage("jsonlite")
@@ -32,9 +33,10 @@ installNewPackage("caret")
 # installNewPackage("curlconverter")
 
 library(ROCR)
-library(pylr)
+library(plyr)
 library(caret)
-# library(dplyr)
+library(class)
+library(MLmetrics)
 # library(devtools)
 # library(ggbiplot)
 # library(httr)
@@ -515,8 +517,15 @@ Load in the music data. You should not use the artist or song title and IDs in t
 ```{r question8a}
 # Loading the music data
 music <- read.csv("data/music.csv")
+
+# Removing IDs, artist, song title variables out of the data 
+music <-  music[, -c(2, 3, 4, 5)]
+
+# Checking for NA values in the data
+sapply(music, function(x) sum(is.na(x)))
 ```
 
+It looks like the data has no NA values that to be concerned about.
 
 #### Question 8b
 
@@ -530,25 +539,24 @@ Prepare the data for a 10-fold cross-validation. Ensure that each split of the d
 set.seed(294)
 
 # NO of fold
-n_fold <- 10
+k_fold <- 10
 
 # Creating the folds variable in the data frame
-music$folds <- createFolds(music$Top10, k = 10, list = FALSE)
+# music$folds <- createFolds(music$Top10, k = n_fold, list = FALSE)
+cv_index_list <- createFolds(music$Top10, k = k_fold, list = TRUE, returnTrain = FALSE)
+
+music_10fold_list <- list()
 
 # Checking the class label proportions
-for(i in 1:n_fold) {
-    fold <- music$Top10[music$folds == i]
+for(i in 1:k_fold) {
+    fold <- music$Top10[cv_index_list[[i]]]
     fold_length <- length(fold)
     class0_prop <- round(length(fold[fold == 0]) / fold_length, 2)
     class1_prop <- round(length(fold[fold == 1]) /  fold_length, 2)
     print(paste("Fold" , i , "length", fold_length, sep = " "))
     print(paste("Class Label(0)", round(class0_prop, 2), sep = " "))
     print(paste("Class Label(1)", round(class1_prop, 2), sep = " "))
-}
-
-# Creating the 10 data frames from the folds
-music_10fold_list <- list()
-for(i in 1:n_fold)  {
+    # Creating/appending the 10 data frames from the folds
     music_10fold_list <- list(music_10fold_list, music[music$folds == i,])
 }
 ```
@@ -563,8 +571,27 @@ for(i in 1:n_fold)  {
 # Setting the k values for KNN
 k_values <- c(1, 3, 5, 7, 9)
 
-
-
+# Running the KNN for the mentioned K values
+# with 10 - fold cross validation
+# Accuracy, error, AUC are rounded off to two decimal points
+for(k in k_values) {
+    cat("\n")
+    print(paste("***Knn with K =", k, "***", sep = " "))
+    cat("\n")
+    for(fold in 1:k_fold) {
+        train_set <- music[-cv_index_list[[fold]], ] 
+        test_set <- music[cv_index_list[[fold]], ] 
+        knn_predicted_values <- knn(train = train_set, test = test_set, cl = train_set$Top10, k = 1)
+        print(paste("Test set fold #", fold, sep = " "))
+        cat("\n")
+        accuracy <- round(Accuracy(knn_predicted_values, test_set$Top10), 2)
+        print(paste("Accuracy is", accuracy, sep = " "))
+        print(paste("Error is", 1 - accuracy, sep =" "))
+        print(paste("Area under the curve(AUC) is", round(AUC(knn_predicted_values, test_set$Top10), 2), 
+                    sep = " "))
+        cat("\n")
+    }
+}
 ```
 
 
