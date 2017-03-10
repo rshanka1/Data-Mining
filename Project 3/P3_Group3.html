@@ -140,16 +140,181 @@ $(document).ready(function () {
 <li>accuracy (Acc.), and</li>
 <li>error rate (Err)</li>
 </ul>
+<pre class="r"><code># Creting S4 object for the predcition evaluation
+setClass(&quot;prediction&quot;, representation(predictions = &quot;list&quot;, labels = &quot;list&quot;, cutoffs = &quot;list&quot;,
+                                      fp = &quot;list&quot;, tp = &quot;list&quot;, tn = &quot;list&quot;, fn = &quot;list&quot;, 
+                                      n.pos = &quot;list&quot;, n.neg = &quot;list&quot;, n.pos.pred = &quot;list&quot;,
+                                      n.neg.pred = &quot;list&quot;, tpr = &quot;numeric&quot;, fpr = &quot;numeric&quot;, 
+                                      tnr = &quot;numeric&quot;, fnr = &quot;numeric&quot;, sensitivity = &quot;numeric&quot;,
+                                      specificity = &quot;numeric&quot;, precision = &quot;numeric&quot;, 
+                                      recall = &quot;numeric&quot;, accuracy = &quot;numeric&quot;, error_rate = &quot;numeric&quot;))
+
+# Function to Evaluate the prediction
+# Returns the necessary measures depeing 
+# upon the passed argument
+predictions &lt;- function (predictions, labels, label.ordering = NULL) {
+    # Check if data frame
+    if (is.data.frame(predictions)) {
+        names(predictions) &lt;- c()
+        predictions &lt;- as.list(predictions)
+    }
+    # Check if it is matrix
+    else if (is.matrix(predictions)) {
+        predictions &lt;- as.list(data.frame(predictions))
+        names(predictions) &lt;- c()
+    }
+    # Check if it is Vector
+    else if (is.vector(predictions) &amp;&amp; !is.list(predictions)) {
+        predictions &lt;- list(predictions)
+    }
+    # Stop if prediction is not of type list
+    else if (!is.list(predictions)) {
+        stop(&quot;Format of predictions is invalid.&quot;)
+    }
+    # Assign the labels
+    if (is.data.frame(labels)) {
+        names(labels) &lt;- c()
+        labels &lt;- as.list(labels)
+    }
+    else if (is.matrix(labels)) {
+        labels &lt;- as.list(data.frame(labels))
+        names(labels) &lt;- c()
+    }
+    else if ((is.vector(labels) || is.ordered(labels) || is.factor(labels)) &amp;&amp; 
+        !is.list(labels)) {
+        labels &lt;- list(labels)
+    }
+    # Stop if labels is not of type list
+    else if (!is.list(labels)) {
+        stop(&quot;Format of labels is invalid.&quot;)
+    }
+    # Length check for single and multiple evaluations
+    if (length(predictions) != length(labels)) 
+        stop(paste(&quot;Number of cross-validation runs must be equal&quot;, 
+            &quot;for predictions and labels.&quot;))
+    if (!all(sapply(predictions, length) == sapply(labels, length))) 
+        stop(paste(&quot;Number of predictions in each run must be equal&quot;, 
+            &quot;to the number of labels for each run.&quot;))
+    
+    for (i in 1:length(predictions)) {
+        finite.bool &lt;- is.finite(predictions[[i]])
+        predictions[[i]] &lt;- predictions[[i]][finite.bool]
+        labels[[i]] &lt;- labels[[i]][finite.bool]
+    }
+    
+    label.format = &quot;&quot;
+    
+    # Assign label fotmat for each type
+    if (all(sapply(labels, is.factor)) &amp;&amp; !any(sapply(labels, 
+        is.ordered))) {
+        label.format &lt;- &quot;factor&quot;
+    }
+    else if (all(sapply(labels, is.ordered))) {
+        label.format &lt;- &quot;ordered&quot;
+    }
+    else if (all(sapply(labels, is.character)) || all(sapply(labels, 
+        is.numeric)) || all(sapply(labels, is.logical))) {
+        label.format &lt;- &quot;normal&quot;
+    }
+    else {
+        stop(paste(&quot;Inconsistent label data type across different&quot;, 
+            &quot;cross-validation runs.&quot;))
+    }
+    if (!all(sapply(labels, levels) == levels(labels[[1]]))) {
+        stop(paste(&quot;Inconsistent factor levels across different&quot;, 
+            &quot;cross-validation runs.&quot;))
+    }
+    levels &lt;- c()
+    if (label.format == &quot;ordered&quot;) {
+        if (!is.null(label.ordering)) {
+            stop(paste(&quot;'labels' is already ordered. No additional&quot;, 
+                &quot;'label.ordering' must be supplied.&quot;))
+        }
+        else {
+            levels &lt;- levels(labels[[1]])
+        }
+    }
+    else {
+        if (is.null(label.ordering)) {
+            if (label.format == &quot;factor&quot;) 
+                levels &lt;- sort(levels(labels[[1]]))
+            else levels &lt;- sort(unique(unlist(labels)))
+        }
+        else {
+            if (!setequal(unique(unlist(labels)), label.ordering)) {
+                stop(&quot;Label ordering does not match class labels.&quot;)
+            }
+            levels &lt;- label.ordering
+        }
+        for (i in 1:length(labels)) {
+            if (is.factor(labels)) 
+                labels[[i]] &lt;- ordered(as.character(labels[[i]]), 
+                  levels = levels)
+            else labels[[i]] &lt;- ordered(labels[[i]], levels = levels)
+        }
+    }
+    if (length(levels) != 2) {
+        message &lt;- paste(&quot;Number of classes is not equal to 2.\n&quot;, 
+            &quot;ROCR currently supports only evaluation of &quot;, &quot;binary classification tasks.&quot;, 
+            sep = &quot;&quot;)
+        stop(message)
+    }
+    if (!is.numeric(unlist(predictions))) {
+        stop(&quot;Currently, only continuous predictions are supported by ROCR.&quot;)
+    }
+    
+    # Intailizing empty list
+    cutoffs &lt;- list()
+    fp &lt;- list()
+    tp &lt;- list()
+    fn &lt;- list()
+    tn &lt;- list()
+    n.pos &lt;- list()
+    n.neg &lt;- list()
+    n.pos.pred &lt;- list()
+    n.neg.pred &lt;- list()
+    
+    # Loop to perform the caluclation for evaluation metrics
+    for (i in 1:length(predictions)) {
+        n.pos &lt;- c(n.pos, sum(labels[[i]] == levels[2]))
+        n.neg &lt;- c(n.neg, sum(labels[[i]] == levels[1]))
+        ans &lt;- .compute.unnormalized.roc.curve(predictions[[i]], 
+            labels[[i]])
+        cutoffs &lt;- c(cutoffs, list(ans$cutoffs))
+        fp &lt;- c(fp, list(ans$fp))
+        tp &lt;- c(tp, list(ans$tp))
+        fn &lt;- c(fn, list(n.pos[[i]] - tp[[i]]))
+        tn &lt;- c(tn, list(n.neg[[i]] - fp[[i]]))
+        n.pos.pred &lt;- c(n.pos.pred, list(tp[[i]] + fp[[i]]))
+        n.neg.pred &lt;- c(n.neg.pred, list(tn[[i]] + fn[[i]]))
+    }
+    tpr &lt;- tp[[1]] / max(tp[[1]])
+    fpr &lt;- fp[[1]] / max(fp[[1]])
+    tnr &lt;- tn[[1]] / max(tn[[1]])
+    fnr &lt;- fn[[1]] / max(fn[[1]])
+    sensitivity &lt;- tp[[1]] / (tp[[1]] + fn[[1]]) 
+    specificity &lt;- tn[[1]] / (fp[[1]] + tn[[1]])
+    precision &lt;- tp[[1]] / (tp[[1]] + fp[[1]])
+    accuracy &lt;- (tp[[1]] + tn[[1]]) / (tp[[1]] + fp[[1]] + fn[[1]] + tn[[1]])
+    error_rate &lt;- 1 - accuracy
+    
+    return(new(&quot;prediction&quot;, predictions = predictions, labels = labels, 
+        cutoffs = cutoffs, fp = fp, tp = tp, fn = fn, tn = tn, 
+        n.pos = n.pos, n.neg = n.neg, n.pos.pred = n.pos.pred, 
+        n.neg.pred = n.neg.pred, tpr = tpr, fpr = fpr, tnr = tnr, fnr = fnr,
+        sensitivity = sensitivity, specificity = specificity, precision = precision,
+        recall = sensitivity, accuracy = accuracy, error_rate = error_rate))
+}</code></pre>
 </div>
 <div id="question-2" class="section level4">
 <h4>Question 2</h4>
-<p>(20 points) For the following data set, you will compute the true positive rate, false positiverate, and accuracy (with the function you wrote for Prob. 1) using every predicted output as a possible threshold.</p>
+<p>(20 points) For the following data set, you will compute the true positive rate, false positive rate, and accuracy (with the function you wrote for Prob. 1) using every predicted output as a possible threshold.</p>
 <table>
 <thead>
 <tr class="header">
 <th>Sample</th>
-<th>Ytrue</th>
-<th>Ypred</th>
+<th>Y<sub>true</sub></th>
+<th>Y<sub>Pred</sub></th>
 </tr>
 </thead>
 <tbody>
@@ -205,10 +370,38 @@ $(document).ready(function () {
 </tr>
 </tbody>
 </table>
+<pre class="r"><code># Assigning the given data to varibles
+y_true &lt;- c(1, 0, 1, 1, 0 ,0, 1, 0, 1, 0)
+y_pred &lt;- c(0.98, 0.92, 0.85, 0.77, 0.71, 0.64, 0.50, 0.39, 0.34, 0.31)
+
+# Calling the prediction function
+pred &lt;- predictions(y_pred, y_true)</code></pre>
+<pre><code>## Found more than one class &quot;prediction&quot; in cache; using the first, from namespace 'ROCR'</code></pre>
+<pre class="r"><code># Creating dataframe for the required result
+result_q2 &lt;- data.frame(true.positve.rate = pred@tpr[-1], false.positive.rate = pred@fpr[-1],
+                        accuracy = pred@accuracy[-1])
+
+# Printing the reults
+result_q2</code></pre>
+<pre><code>##    true.positve.rate false.positive.rate accuracy
+## 1                0.2                 0.0      0.6
+## 2                0.2                 0.2      0.5
+## 3                0.4                 0.2      0.6
+## 4                0.6                 0.2      0.7
+## 5                0.6                 0.4      0.6
+## 6                0.6                 0.6      0.5
+## 7                0.8                 0.6      0.6
+## 8                0.8                 0.8      0.5
+## 9                1.0                 0.8      0.6
+## 10               1.0                 1.0      0.5</code></pre>
 </div>
 <div id="question-3" class="section level4">
 <h4>Question 3</h4>
 <p>(10 points) Use the results from Prob. 2 to plot the ROC curve for the data. Note, plot this curve using the standard plotting tools rather than any special library/package available in R or Matlab.</p>
+<pre class="r"><code># Plotting the ROC curve for the data
+plot(result_q2$false.positive.rate, result_q2$true.positve.rate, type = &quot;l&quot;, col = &quot;red&quot;)
+abline(a=0, b=1)</code></pre>
+<p><img src="data:image/png;base64,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" width="672" /></p>
 </div>
 <div id="question-4" class="section level4">
 <h4>Question 4</h4>
@@ -337,19 +530,446 @@ C &amp; 40\\
 <h4>Classification of Music Popularity</h4>
 <p>For this problem, you will work to classify a song’s popularity. Specifically, you will develop methods to predict whether a song will make the Top10 of Billboard’s Hot 100 Chart. The data set consists of song from the Top10 of Billboard’s Hot 100 Chart from 1990-2010 along with a sampling of other songs that did not make the list1.</p>
 <p>The variables included in the data set include several description of the song and artist (including song title and id numbers), the year the song was released. Additionally, several variables describe the song attributes: time signature, loudness, tempo, key, energy pitch, and timbre (measured of different sections of the song). The last variable is binary indicated whether the song was in the Top10 or not.</p>
-<p>You will use the variables of the song attributes (excluding the variables involving confidence in that attribute, e.g., key condence) to predict whether the song will be popular or not.</p>
+<p>You will use the variables of the song attributes (excluding the variables involving confidence in that attribute, e.g., key confidence) to predict whether the song will be popular or not.</p>
 </div>
 <div id="question-8a" class="section level4">
 <h4>Question 8a</h4>
-<p>Load in the music data. You should not use the artist or song title and IDs in the prediction along with the condence variables.</p>
+<p>Load in the music data. You should not use the artist or song title and IDs in the prediction along with the confidence variables.</p>
+<pre class="r"><code># Loading the music data
+music &lt;- read.csv(&quot;data/music.csv&quot;)
+
+# Removing IDs, artist, song title variables out of the data 
+music &lt;-  music[, -c(2, 3, 4, 5)]
+
+# Checking for NA values in the data
+sapply(music, function(x) sum(is.na(x)))</code></pre>
+<pre><code>##                     year            timesignature timesignature_confidence 
+##                        0                        0                        0 
+##                 loudness                    tempo         tempo_confidence 
+##                        0                        0                        0 
+##                      key           key_confidence                   energy 
+##                        0                        0                        0 
+##                    pitch             timbre_0_min             timbre_0_max 
+##                        0                        0                        0 
+##             timbre_1_min             timbre_1_max             timbre_2_min 
+##                        0                        0                        0 
+##             timbre_2_max             timbre_3_min             timbre_3_max 
+##                        0                        0                        0 
+##             timbre_4_min             timbre_4_max             timbre_5_min 
+##                        0                        0                        0 
+##             timbre_5_max             timbre_6_min             timbre_6_max 
+##                        0                        0                        0 
+##             timbre_7_min             timbre_7_max             timbre_8_min 
+##                        0                        0                        0 
+##             timbre_8_max             timbre_9_min             timbre_9_max 
+##                        0                        0                        0 
+##            timbre_10_min            timbre_10_max            timbre_11_min 
+##                        0                        0                        0 
+##            timbre_11_max                    Top10 
+##                        0                        0</code></pre>
+<p>It looks like the data has no NA values that to be concerned about.</p>
 </div>
 <div id="question-8b" class="section level4">
 <h4>Question 8b</h4>
 <p>Prepare the data for a 10-fold cross-validation. Ensure that each split of the data has a balanced distribution of class labels.</p>
+<pre class="r"><code># Data preprocessing for 10 fold cross validation
+
+# Setting the seed for reproduciablility
+set.seed(294)
+
+# NO of fold
+k_fold &lt;- 10
+
+# Creating the folds variable in the data frame
+# music$folds &lt;- createFolds(music$Top10, k = n_fold, list = FALSE)
+cv_index_list &lt;- createFolds(music$Top10, k = k_fold, list = TRUE, returnTrain = FALSE)
+
+music_10fold_list &lt;- list()
+
+# Checking the class label proportions
+for(i in 1:k_fold) {
+    fold &lt;- music$Top10[cv_index_list[[i]]]
+    fold_length &lt;- length(fold)
+    class0_prop &lt;- round(length(fold[fold == 0]) / fold_length, 2)
+    class1_prop &lt;- round(length(fold[fold == 1]) /  fold_length, 2)
+    print(paste(&quot;Fold&quot; , i , &quot;length&quot;, fold_length, sep = &quot; &quot;))
+    print(paste(&quot;Class Label(0)&quot;, round(class0_prop, 2), sep = &quot; &quot;))
+    print(paste(&quot;Class Label(1)&quot;, round(class1_prop, 2), sep = &quot; &quot;))
+    # Creating/appending the 10 data frames from the folds
+    music_10fold_list &lt;- list(music_10fold_list, music[music$folds == i,])
+}</code></pre>
+<pre><code>## [1] &quot;Fold 1 length 757&quot;
+## [1] &quot;Class Label(0) 0.85&quot;
+## [1] &quot;Class Label(1) 0.15&quot;
+## [1] &quot;Fold 2 length 757&quot;
+## [1] &quot;Class Label(0) 0.86&quot;
+## [1] &quot;Class Label(1) 0.14&quot;
+## [1] &quot;Fold 3 length 758&quot;
+## [1] &quot;Class Label(0) 0.86&quot;
+## [1] &quot;Class Label(1) 0.14&quot;
+## [1] &quot;Fold 4 length 758&quot;
+## [1] &quot;Class Label(0) 0.85&quot;
+## [1] &quot;Class Label(1) 0.15&quot;
+## [1] &quot;Fold 5 length 757&quot;
+## [1] &quot;Class Label(0) 0.85&quot;
+## [1] &quot;Class Label(1) 0.15&quot;
+## [1] &quot;Fold 6 length 758&quot;
+## [1] &quot;Class Label(0) 0.85&quot;
+## [1] &quot;Class Label(1) 0.15&quot;
+## [1] &quot;Fold 7 length 757&quot;
+## [1] &quot;Class Label(0) 0.85&quot;
+## [1] &quot;Class Label(1) 0.15&quot;
+## [1] &quot;Fold 8 length 758&quot;
+## [1] &quot;Class Label(0) 0.85&quot;
+## [1] &quot;Class Label(1) 0.15&quot;
+## [1] &quot;Fold 9 length 757&quot;
+## [1] &quot;Class Label(0) 0.85&quot;
+## [1] &quot;Class Label(1) 0.15&quot;
+## [1] &quot;Fold 10 length 757&quot;
+## [1] &quot;Class Label(0) 0.86&quot;
+## [1] &quot;Class Label(1) 0.14&quot;</code></pre>
 </div>
 <div id="question-8c" class="section level4">
 <h4>Question 8c</h4>
 <p>(15 points) Use kNN to predict whether a song is a hit. Estimate the generalization performance over the 10-folds, calculate and report the accuracy, error, and AUC performance on the testing data. Show these results for three values of k = 1; 3; 5; 7; 9.</p>
+<pre class="r"><code># Setting the k values for KNN
+k_values &lt;- c(1, 3, 5, 7, 9)
+
+# Running the KNN for the mentioned K values
+# with 10 - fold cross validation
+# Accuracy, error, AUC are rounded off to two decimal points
+for(k in k_values) {
+    cat(&quot;\n&quot;)
+    print(paste(&quot;***Knn with K =&quot;, k, &quot;***&quot;, sep = &quot; &quot;))
+    cat(&quot;\n&quot;)
+    for(fold in 1:k_fold) {
+        train_set &lt;- music[-cv_index_list[[fold]], ] 
+        test_set &lt;- music[cv_index_list[[fold]], ] 
+        knn_predicted_values &lt;- knn(train = train_set, test = test_set, cl = train_set$Top10, k = 1)
+        print(paste(&quot;Test set fold #&quot;, fold, sep = &quot; &quot;))
+        cat(&quot;\n&quot;)
+        accuracy &lt;- round(Accuracy(knn_predicted_values, test_set$Top10), 2)
+        print(paste(&quot;Accuracy is&quot;, accuracy, sep = &quot; &quot;))
+        print(paste(&quot;Error is&quot;, 1 - accuracy, sep =&quot; &quot;))
+        print(paste(&quot;Area under the curve(AUC) is&quot;, round(AUC(knn_predicted_values, test_set$Top10), 2), 
+                    sep = &quot; &quot;))
+        cat(&quot;\n&quot;)
+    }
+}</code></pre>
+<pre><code>## 
+## [1] &quot;***Knn with K = 1 ***&quot;
+## 
+## [1] &quot;Test set fold # 1&quot;
+## 
+## [1] &quot;Accuracy is 0.77&quot;
+## [1] &quot;Error is 0.23&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 2&quot;
+## 
+## [1] &quot;Accuracy is 0.8&quot;
+## [1] &quot;Error is 0.2&quot;
+## [1] &quot;Area under the curve(AUC) is 0.58&quot;
+## 
+## [1] &quot;Test set fold # 3&quot;
+## 
+## [1] &quot;Accuracy is 0.78&quot;
+## [1] &quot;Error is 0.22&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 4&quot;
+## 
+## [1] &quot;Accuracy is 0.78&quot;
+## [1] &quot;Error is 0.22&quot;
+## [1] &quot;Area under the curve(AUC) is 0.58&quot;
+## 
+## [1] &quot;Test set fold # 5&quot;
+## 
+## [1] &quot;Accuracy is 0.76&quot;
+## [1] &quot;Error is 0.24&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 6&quot;
+## 
+## [1] &quot;Accuracy is 0.77&quot;
+## [1] &quot;Error is 0.23&quot;
+## [1] &quot;Area under the curve(AUC) is 0.58&quot;
+## 
+## [1] &quot;Test set fold # 7&quot;
+## 
+## [1] &quot;Accuracy is 0.78&quot;
+## [1] &quot;Error is 0.22&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 8&quot;
+## 
+## [1] &quot;Accuracy is 0.79&quot;
+## [1] &quot;Error is 0.21&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 9&quot;
+## 
+## [1] &quot;Accuracy is 0.78&quot;
+## [1] &quot;Error is 0.22&quot;
+## [1] &quot;Area under the curve(AUC) is 0.57&quot;
+## 
+## [1] &quot;Test set fold # 10&quot;
+## 
+## [1] &quot;Accuracy is 0.8&quot;
+## [1] &quot;Error is 0.2&quot;
+## [1] &quot;Area under the curve(AUC) is 0.6&quot;
+## 
+## 
+## [1] &quot;***Knn with K = 3 ***&quot;
+## 
+## [1] &quot;Test set fold # 1&quot;
+## 
+## [1] &quot;Accuracy is 0.77&quot;
+## [1] &quot;Error is 0.23&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 2&quot;
+## 
+## [1] &quot;Accuracy is 0.8&quot;
+## [1] &quot;Error is 0.2&quot;
+## [1] &quot;Area under the curve(AUC) is 0.58&quot;
+## 
+## [1] &quot;Test set fold # 3&quot;
+## 
+## [1] &quot;Accuracy is 0.78&quot;
+## [1] &quot;Error is 0.22&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 4&quot;
+## 
+## [1] &quot;Accuracy is 0.78&quot;
+## [1] &quot;Error is 0.22&quot;
+## [1] &quot;Area under the curve(AUC) is 0.58&quot;
+## 
+## [1] &quot;Test set fold # 5&quot;
+## 
+## [1] &quot;Accuracy is 0.76&quot;
+## [1] &quot;Error is 0.24&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 6&quot;
+## 
+## [1] &quot;Accuracy is 0.77&quot;
+## [1] &quot;Error is 0.23&quot;
+## [1] &quot;Area under the curve(AUC) is 0.58&quot;
+## 
+## [1] &quot;Test set fold # 7&quot;
+## 
+## [1] &quot;Accuracy is 0.78&quot;
+## [1] &quot;Error is 0.22&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 8&quot;
+## 
+## [1] &quot;Accuracy is 0.79&quot;
+## [1] &quot;Error is 0.21&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 9&quot;
+## 
+## [1] &quot;Accuracy is 0.78&quot;
+## [1] &quot;Error is 0.22&quot;
+## [1] &quot;Area under the curve(AUC) is 0.57&quot;
+## 
+## [1] &quot;Test set fold # 10&quot;
+## 
+## [1] &quot;Accuracy is 0.8&quot;
+## [1] &quot;Error is 0.2&quot;
+## [1] &quot;Area under the curve(AUC) is 0.6&quot;
+## 
+## 
+## [1] &quot;***Knn with K = 5 ***&quot;
+## 
+## [1] &quot;Test set fold # 1&quot;
+## 
+## [1] &quot;Accuracy is 0.77&quot;
+## [1] &quot;Error is 0.23&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 2&quot;
+## 
+## [1] &quot;Accuracy is 0.8&quot;
+## [1] &quot;Error is 0.2&quot;
+## [1] &quot;Area under the curve(AUC) is 0.58&quot;
+## 
+## [1] &quot;Test set fold # 3&quot;
+## 
+## [1] &quot;Accuracy is 0.78&quot;
+## [1] &quot;Error is 0.22&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 4&quot;
+## 
+## [1] &quot;Accuracy is 0.78&quot;
+## [1] &quot;Error is 0.22&quot;
+## [1] &quot;Area under the curve(AUC) is 0.58&quot;
+## 
+## [1] &quot;Test set fold # 5&quot;
+## 
+## [1] &quot;Accuracy is 0.76&quot;
+## [1] &quot;Error is 0.24&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 6&quot;
+## 
+## [1] &quot;Accuracy is 0.77&quot;
+## [1] &quot;Error is 0.23&quot;
+## [1] &quot;Area under the curve(AUC) is 0.58&quot;
+## 
+## [1] &quot;Test set fold # 7&quot;
+## 
+## [1] &quot;Accuracy is 0.78&quot;
+## [1] &quot;Error is 0.22&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 8&quot;
+## 
+## [1] &quot;Accuracy is 0.79&quot;
+## [1] &quot;Error is 0.21&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 9&quot;
+## 
+## [1] &quot;Accuracy is 0.78&quot;
+## [1] &quot;Error is 0.22&quot;
+## [1] &quot;Area under the curve(AUC) is 0.57&quot;
+## 
+## [1] &quot;Test set fold # 10&quot;
+## 
+## [1] &quot;Accuracy is 0.8&quot;
+## [1] &quot;Error is 0.2&quot;
+## [1] &quot;Area under the curve(AUC) is 0.6&quot;
+## 
+## 
+## [1] &quot;***Knn with K = 7 ***&quot;
+## 
+## [1] &quot;Test set fold # 1&quot;
+## 
+## [1] &quot;Accuracy is 0.77&quot;
+## [1] &quot;Error is 0.23&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 2&quot;
+## 
+## [1] &quot;Accuracy is 0.8&quot;
+## [1] &quot;Error is 0.2&quot;
+## [1] &quot;Area under the curve(AUC) is 0.58&quot;
+## 
+## [1] &quot;Test set fold # 3&quot;
+## 
+## [1] &quot;Accuracy is 0.78&quot;
+## [1] &quot;Error is 0.22&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 4&quot;
+## 
+## [1] &quot;Accuracy is 0.78&quot;
+## [1] &quot;Error is 0.22&quot;
+## [1] &quot;Area under the curve(AUC) is 0.58&quot;
+## 
+## [1] &quot;Test set fold # 5&quot;
+## 
+## [1] &quot;Accuracy is 0.76&quot;
+## [1] &quot;Error is 0.24&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 6&quot;
+## 
+## [1] &quot;Accuracy is 0.77&quot;
+## [1] &quot;Error is 0.23&quot;
+## [1] &quot;Area under the curve(AUC) is 0.58&quot;
+## 
+## [1] &quot;Test set fold # 7&quot;
+## 
+## [1] &quot;Accuracy is 0.78&quot;
+## [1] &quot;Error is 0.22&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 8&quot;
+## 
+## [1] &quot;Accuracy is 0.79&quot;
+## [1] &quot;Error is 0.21&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 9&quot;
+## 
+## [1] &quot;Accuracy is 0.78&quot;
+## [1] &quot;Error is 0.22&quot;
+## [1] &quot;Area under the curve(AUC) is 0.57&quot;
+## 
+## [1] &quot;Test set fold # 10&quot;
+## 
+## [1] &quot;Accuracy is 0.8&quot;
+## [1] &quot;Error is 0.2&quot;
+## [1] &quot;Area under the curve(AUC) is 0.6&quot;
+## 
+## 
+## [1] &quot;***Knn with K = 9 ***&quot;
+## 
+## [1] &quot;Test set fold # 1&quot;
+## 
+## [1] &quot;Accuracy is 0.77&quot;
+## [1] &quot;Error is 0.23&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 2&quot;
+## 
+## [1] &quot;Accuracy is 0.8&quot;
+## [1] &quot;Error is 0.2&quot;
+## [1] &quot;Area under the curve(AUC) is 0.58&quot;
+## 
+## [1] &quot;Test set fold # 3&quot;
+## 
+## [1] &quot;Accuracy is 0.78&quot;
+## [1] &quot;Error is 0.22&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 4&quot;
+## 
+## [1] &quot;Accuracy is 0.78&quot;
+## [1] &quot;Error is 0.22&quot;
+## [1] &quot;Area under the curve(AUC) is 0.58&quot;
+## 
+## [1] &quot;Test set fold # 5&quot;
+## 
+## [1] &quot;Accuracy is 0.76&quot;
+## [1] &quot;Error is 0.24&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 6&quot;
+## 
+## [1] &quot;Accuracy is 0.77&quot;
+## [1] &quot;Error is 0.23&quot;
+## [1] &quot;Area under the curve(AUC) is 0.58&quot;
+## 
+## [1] &quot;Test set fold # 7&quot;
+## 
+## [1] &quot;Accuracy is 0.78&quot;
+## [1] &quot;Error is 0.22&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 8&quot;
+## 
+## [1] &quot;Accuracy is 0.79&quot;
+## [1] &quot;Error is 0.21&quot;
+## [1] &quot;Area under the curve(AUC) is 0.56&quot;
+## 
+## [1] &quot;Test set fold # 9&quot;
+## 
+## [1] &quot;Accuracy is 0.78&quot;
+## [1] &quot;Error is 0.22&quot;
+## [1] &quot;Area under the curve(AUC) is 0.57&quot;
+## 
+## [1] &quot;Test set fold # 10&quot;
+## 
+## [1] &quot;Accuracy is 0.8&quot;
+## [1] &quot;Error is 0.2&quot;
+## [1] &quot;Area under the curve(AUC) is 0.6&quot;</code></pre>
 </div>
 <div id="question-8d" class="section level4">
 <h4>Question 8d</h4>

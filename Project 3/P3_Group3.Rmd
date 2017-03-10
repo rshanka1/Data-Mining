@@ -26,21 +26,22 @@ installNewPackage("plyr")
 installNewPackage("caret")
 installNewPackage("class")
 installNewPackage("MLmetrics")
-# installNewPackage("protoclust")
-# installNewPackage("httr")
-# installNewPackage("jsonlite")
-# installNewPackage("httpuv")
-# installNewPackage("curlconverter")
+installNewPackage("rpart")
+installNewPackage("rpart.plot")
+installNewPackage("rattle")
+installNewPackage("randomForest")
+installNewPackage("e1071")
 
 library(ROCR)
 library(plyr)
 library(caret)
 library(class)
 library(MLmetrics)
-# library(devtools)
-# library(ggbiplot)
-# library(httr)
-# library(jsonlite)
+library(rpart)
+library(rpart.plot)
+library(rattle)
+library(randomForest)
+library(e1071)
 # library(httpuv)
 # library(curlconverter)
 # 
@@ -456,7 +457,7 @@ Load in the spam data. You should not include the following columns in the class
 
 #### Question 7c
 
-(8 points) Construct a classication tree to predict spam on the training data.
+(8 points) Construct a classification tree to predict spam on the training data.
 
 For R users, consider using the rpart library. Try using the default parameters of the software package. Understand how the decision tree is represented in R.
 
@@ -516,10 +517,10 @@ Load in the music data. You should not use the artist or song title and IDs in t
 
 ```{r question8a}
 # Loading the music data
-music <- read.csv("data/music.csv")
+music_real <- read.csv("data/music.csv")
 
 # Removing IDs, artist, song title variables out of the data 
-music <-  music[, -c(2, 3, 4, 5)]
+music <-  music_real[, -c(2, 3, 4, 5, 6 , 9, 11)]
 
 # Checking for NA values in the data
 sapply(music, function(x) sum(is.na(x)))
@@ -578,6 +579,9 @@ for(k in k_values) {
     cat("\n")
     print(paste("***Knn with K =", k, "***", sep = " "))
     cat("\n")
+    total_acc <- 0
+    total_error_rate <- 0
+    total_AUC <- 0
     for(fold in 1:k_fold) {
         train_set <- music[-cv_index_list[[fold]], ] 
         test_set <- music[cv_index_list[[fold]], ] 
@@ -585,12 +589,21 @@ for(k in k_values) {
         print(paste("Test set fold #", fold, sep = " "))
         cat("\n")
         accuracy <- round(Accuracy(knn_predicted_values, test_set$Top10), 2)
+        error_rate <- 1 - accuracy
+        AUC <- round(AUC(knn_predicted_values, test_set$Top10), 2)
         print(paste("Accuracy is", accuracy, sep = " "))
-        print(paste("Error is", 1 - accuracy, sep =" "))
-        print(paste("Area under the curve(AUC) is", round(AUC(knn_predicted_values, test_set$Top10), 2), 
-                    sep = " "))
+        print(paste("Error is", error_rate, sep =" "))
+        print(paste("Area under the curve(AUC) is", AUC, sep = " "))
         cat("\n")
+        total_acc <- total_acc + accuracy
+        total_error_rate <- total_error_rate + error_rate
+        total_AUC <- total_AUC + AUC
     }
+    cat("==========================================================\n")
+    print(paste("Overall accuracy is", round(total_acc / k_fold, 2), sep = " "))
+    print(paste("Overall error is", round(total_error_rate / k_fold, 2), sep =" "))
+    print(paste("Overall area under the curve(AUC) is", round(total_AUC / k_fold, 2), sep = " "))
+    cat("\n==========================================================\n")
 }
 ```
 
@@ -601,7 +614,48 @@ for(k in k_values) {
 
 
 ```{r question8d}
+# Intailize variables
+total_acc <- 0
+total_error_rate <- 0
+total_AUC <- 0
 
+# Running the Decision Tree with 10 - fold cross validation
+# Accuracy, error, AUC are rounded off to two decimal points
+for(fold in 1:k_fold) {
+    train_set <- music[-cv_index_list[[1]], ] 
+    test_set <- music[cv_index_list[[1]], ] 
+    tree_fit <- rpart(Top10 ~ ., method="class", data = train_set)
+    
+    fancyRpartPlot(tree_fit, main = paste("Before Pruning - Fold #", fold, sep = " "))
+    
+    # Find cp with minimum Cross validate error from rpart results
+    min_error_cp <- tree_fit$cptable[which.min(tree_fit$cptable[,"xerror"]), "CP"]
+    
+    # pruning the tree with minimum cross validate error
+    ptree_fit <- prune(tree_fit, cp = min_error_cp)
+    fancyRpartPlot(ptree_fit, main = paste("After Pruning - Fold #", fold, sep = " "))
+    
+    # Calculating Accuracy. Error, AUC
+    test_prediction <- predict(tree_fit, test_set, type = 'class')
+    print(paste("Test set fold #", fold, sep = " "))
+    cat("\n")
+    accuracy <- round(Accuracy(test_prediction, test_set$Top10), 2)
+    error_rate <- 1 - accuracy
+    AUC <- round(AUC(test_prediction, test_set$Top10), 2)
+    print(paste("Accuracy is", accuracy, sep = " "))
+    print(paste("Error is", error_rate, sep =" "))
+    print(paste("Area under the curve(AUC) is", AUC, sep = " "))
+    total_acc <- total_acc + accuracy
+    total_error_rate <- total_error_rate + error_rate
+    total_AUC <- total_AUC + AUC
+    cat("\n")
+}
+
+cat("==========================================================\n")
+print(paste("Overall accuracy is", round(total_acc / k_fold, 2), sep = " "))
+print(paste("Overall error is", round(total_error_rate / k_fold, 2), sep =" "))
+print(paste("Overall area under the curve(AUC) is", round(total_AUC / k_fold, 2), sep = " "))
+cat("\n==========================================================\n")
 ```
 
 
@@ -611,7 +665,42 @@ for(k in k_values) {
 
 
 ```{r question8e}
+# Intailize variables
+total_acc <- 0
+total_error_rate <- 0
+total_AUC <- 0
 
+# Running the Decision Tree with 10 - fold cross validation
+# Accuracy, error, AUC are rounded off to two decimal points
+for(fold in 1:k_fold) {
+    train_set <- music[-cv_index_list[[fold]], ] 
+    test_set <- music[cv_index_list[[fold]], ] 
+    
+    # Fitting the Naive bayes model
+    nb_fit <- naiveBayes(as.factor(Top10) ~ ., data = train_set)
+    
+    # Calculating Accuracy. Error, AUC
+    test_prediction <- predict(nb_fit, test_set, type = "class")
+    
+    print(paste("Test set fold #", fold, sep = " "))
+    cat("\n")
+    accuracy <- round(Accuracy(test_prediction, test_set$Top10), 2)
+    error_rate <- 1 - accuracy
+    AUC <- round(AUC(test_prediction, test_set$Top10), 2)
+    print(paste("Accuracy is", accuracy, sep = " "))
+    print(paste("Error is", error_rate, sep =" "))
+    print(paste("Area under the curve(AUC) is", AUC, sep = " "))
+    total_acc <- total_acc + accuracy
+    total_error_rate <- total_error_rate + error_rate
+    total_AUC <- total_AUC + AUC
+    cat("\n")
+}
+
+cat("==========================================================\n")
+print(paste("Overall accuracy is", round(total_acc / k_fold, 2), sep = " "))
+print(paste("Overall error is", round(total_error_rate / k_fold, 2), sep =" "))
+print(paste("Overall area under the curve(AUC) is", round(total_AUC / k_fold, 2), sep = " "))
+cat("\n==========================================================\n")
 ```
 
 
@@ -621,7 +710,41 @@ for(k in k_values) {
 
 
 ```{r question8f}
+# Intailize variables
+total_acc <- 0
+total_error_rate <- 0
+total_AUC <- 0
 
+# Running the Random Forest with 10 - fold cross validation
+# Accuracy, error, AUC are rounded off to two decimal points
+for(fold in 1:k_fold) {
+    train_set <- music[-cv_index_list[[fold]], ] 
+    test_set <- music[cv_index_list[[fold]], ] 
+    
+    # Fitting the model
+    rf_fit <- randomForest(as.factor(Top10) ~ ., data = train_set, importance = TRUE, ntree = 100)
+    
+    # Calculating Accuracy. Error, AUC
+    test_prediction <- predict(rf_fit, test_set, type = 'class')
+    print(paste("Test set fold #", fold, sep = " "))
+    cat("\n")
+    accuracy <- round(Accuracy(test_prediction, test_set$Top10), 2)
+    error_rate <- 1 - accuracy
+    AUC <- round(AUC(test_prediction, test_set$Top10), 2)
+    print(paste("Accuracy is", accuracy, sep = " "))
+    print(paste("Error is", error_rate, sep =" "))
+    print(paste("Area under the curve(AUC) is", AUC, sep = " "))
+    total_acc <- total_acc + accuracy
+    total_error_rate <- total_error_rate + error_rate
+    total_AUC <- total_AUC + AUC
+    cat("\n")
+}
+
+cat("==========================================================\n")
+print(paste("Overall accuracy is", round(total_acc / k_fold, 2), sep = " "))
+print(paste("Overall error is", round(total_error_rate / k_fold, 2), sep =" "))
+print(paste("Overall area under the curve(AUC) is", round(total_AUC / k_fold, 2), sep = " "))
+cat("\n==========================================================\n")
 ```
 
 
@@ -631,7 +754,63 @@ for(k in k_values) {
 
 
 ```{r question8g}
+# Intializing the cost variables
+cost_values <- c(0.01, 0.1, 1, 10, 10, 100)
+total_acc_list <- c()
+total_error_rate_list <- c()
+total_AUC_list <- c()
 
+# Running the Support Vector machine for cost values 
+# 0.01, 0.1, 1, 10, 10, 100 with 10 - fold cross validation
+# Accuracy, error, AUC are rounded off to two decimal points
+for(cost in cost_values) {
+    
+    # Intailize variables
+    total_acc <- 0
+    total_error_rate <- 0
+    total_AUC <- 0
+    
+    print(paste("*** For the cost value", cost, "***", sep = " "))
+    
+    for(fold in 1:k_fold) {
+        train_set <- music[-cv_index_list[[fold]], ] 
+        test_set <- music[cv_index_list[[fold]], ] 
+        
+        # Fitting the model
+        svm_fit <- svm(as.factor(Top10) ~ ., data = train_set, kernel = "radial", cost = cost)
+        
+        # Calculating Accuracy. Error, AUC
+        test_prediction <- predict(rf_fit, test_set, type = 'class')
+        print(paste("Test set fold #", fold, sep = " "))
+        cat("\n")
+        accuracy <- round(Accuracy(test_prediction, test_set$Top10), 2)
+        error_rate <- 1 - accuracy
+        AUC <- round(AUC(test_prediction, test_set$Top10), 2)
+        print(paste("Accuracy is", accuracy, sep = " "))
+        print(paste("Error is", error_rate, sep =" "))
+        print(paste("Area under the curve(AUC) is", AUC, sep = " "))
+        total_acc <- total_acc + accuracy
+        total_error_rate <- total_error_rate + error_rate
+        total_AUC <- total_AUC + AUC
+        cat("\n")
+    }
+    total_acc_list <- c(total_acc_list, total_acc / k_fold)
+    total_error_rate_list <- c(total_error_rate_list, total_error_rate / k_fold)
+    total_AUC_list <- c(total_AUC_list, total_AUC / k_fold)
+}
+
+max_acc_index <- which.max(total_acc_list)
+best_cost <- cost_values[max_acc_index]
+best_acc <- total_acc_list[max_acc_index]
+best_error_rate <- total_error_rate_list[max_acc_index]
+best_AUC <- total_AUC_list[max_acc_index]
+
+cat("==========================================================\n")
+cat(paste("Best model is one with cost as", best_cost, "\n", sep = " "))
+print(paste("Best model accuracy is", round(best_acc, 2), sep = " "))
+print(paste("Best model error is", round(best_error_rate, 2), sep =" "))
+print(paste("Best model area under the curve(AUC) is", round(best_AUC, 2), sep = " "))
+cat("\n==========================================================\n")
 ```
 
 
