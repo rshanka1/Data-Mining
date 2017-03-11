@@ -417,7 +417,7 @@ For this problem, you want to classify the age of an individual ("High School" o
 
 ```{r question6a}
 # Importing data
-syp_16_data <-  read.csv('syp-16-data.csv')
+syp_16_data <-  read.csv('data/syp-16-data.csv')
 head(syp_16_data)
 
 # Converting data from wide to long format
