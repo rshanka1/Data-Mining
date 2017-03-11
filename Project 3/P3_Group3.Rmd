@@ -24,6 +24,9 @@ installNewPackage <- function(packageName) {
 installNewPackage("ROCR")
 installNewPackage("plyr")
 installNewPackage("caret")
+installNewPackage("pROC")
+installNewPackage("ggplot2")
+installNewPackage("tidyr")
 installNewPackage("class")
 installNewPackage("MLmetrics")
 installNewPackage("rpart")
@@ -35,6 +38,9 @@ installNewPackage("e1071")
 library(ROCR)
 library(plyr)
 library(caret)
+library(pROC)
+library(ggplot2)
+library(tidyr)
 library(class)
 library(MLmetrics)
 library(rpart)
@@ -42,12 +48,6 @@ library(rpart.plot)
 library(rattle)
 library(randomForest)
 library(e1071)
-# library(httpuv)
-# library(curlconverter)
-# 
-# # Comment it when your executing for second or the next time
-# # for faster running 
-# install_github("ggbiplot","vqv")
 ```
 
 #### Question 1
@@ -290,10 +290,22 @@ abline(a=0, b=1)
 
 Suppose that we want to select between two prediction models, M~1~ and M~2~. We have performed 10 rounds of 10-fold cross-validation on each model, where the same data partitioning in round i is used for both M~1~ and M~2~. The error rates obtained for M~1~ are 30.5, 32.2, 20.7, 20.6, 31.0, 41.0, 27.7, 26.0, 21.5, 26.0. The error rates for M~2~ are 22.4, 14.5, 22.4, 19.6, 20.7, 20.4, 22.1, 19.4, 16.2, 35.0. Comment on whether one model is significantly better than the other considering a significance level of 1%.
 
+**Answer**
+
+Hypothesis testing can be done to see if there are significant difference in error rates. Since same data partitioning is used for both M1 and M2 i.e same test set, the paired observation hypothesis testing to compare means is
+
+H0: me1 - me2 = 0
+
+H1: me1 - me2 != 0 where me1 is the mean error of M1 and me2 is the mean error of M2
 
 ```{r question4}
+M1 = c(30.5, 32.2, 20.7, 20.6, 31.0, 41.0, 27.7, 26.0, 21.5, 26.0)
+M2 = c(22.4, 14.5, 22.4, 19.6, 20.7, 20.4, 22.1, 19.4, 16.2, 35.0)
 
+t.test(M1,M2,paired = TRUE,conf.level = 0.99)
 ```
+
+Since p-value is 0.0437 which is greater than the significance level of 0.01, we fail to reject the null hypothesis i.e the two models are not significantly different.
 
 
 #### Question 5
@@ -404,7 +416,19 @@ For this problem, you want to classify the age of an individual ("High School" o
 
 
 ```{r question6a}
+# Importing data
+syp_16_data <-  read.csv('syp-16-data.csv')
+head(syp_16_data)
 
+# Converting data from wide to long format
+data1 <- gather(data = syp_16_data,key = Network,value = vals,c(Facebook,Twitter,LinkedIn,Google.,Youtube,Pinterest,Instagram,Tumblr,Flickr,Snapchat,WhatsApp,Vine,Periscope,Viber,KikMessenger,Telegram,ooVoo,YikYak,Other),factor_key = TRUE)
+# Finding the frequency
+data1 <- data.frame(table(data1$Adult,data1$vals,data1$Network))
+colnames(data1) <- c("Age","Value","Network","Count")
+head(data1)
+
+# Creating grouped barplots
+ggplot(data = data1,aes(x = Age,y = Count))+geom_bar(aes(fill = Value),stat = "identity",position = "stack")+facet_grid(.~Network)
 ```
 
 
@@ -413,9 +437,7 @@ For this problem, you want to classify the age of an individual ("High School" o
 (4 points) From the figures in (a), which of the apps would you expect to find at the root of a deicision tree? that is, which app (variable) would be best to separate the two classes of responses?
 
 
-```{r question6b}
-
-```
+**The intuition is Facebook which could separate the two classes (Adults and HS).**
 
 
 #### Question 6c
@@ -424,8 +446,29 @@ For this problem, you want to classify the age of an individual ("High School" o
 
 
 ```{r question6c}
+# Splitting the dataset as 75/25
+set.seed(123)
+split <- sample.split(syp_16_data$Adult,SplitRatio = 3/4)
+training_set <- subset(syp_16_data,split == TRUE)
+test_set <- subset(syp_16_data,split == FALSE)
 
+# Fitting decision tree to training set
+dtree <- rpart(formula = Adult~.,data = training_set)
+
+# Predicting the output for test set
+y_pred <- predict(object = dtree,newdata = test_set,type = 'class')
+
+# Creating confusion matrix
+cm <- confusionMatrix(test_set[,20],y_pred)
+cm
+
+# Plotting Decision tree
+plot(dtree)
+text(dtree)
 ```
+
+
+**The intuition was facebook but the variable at the root of the tree is Instagram.**
 
 
 #### Question 7
@@ -441,7 +484,9 @@ Load in the spam data. You should not include the following columns in the class
 
 
 ```{r question7a}
-
+spam <- read.csv("spam.csv")
+spam <- data.frame(spam[,-c(1,2,7,11,19,20)])
+head(spam)
 ```
 
 
@@ -451,7 +496,11 @@ Load in the spam data. You should not include the following columns in the class
 
 
 ```{r question7b}
-
+# Splitting data set by 80/20
+set.seed(123)
+split <- sample.split(spam$spam,SplitRatio = 0.80)
+training_set <- subset(spam,split == TRUE)
+test_set <- subset(spam,split == FALSE)
 ```
 
 
@@ -465,7 +514,15 @@ For Matlab users, consider using the Statistics Toolbox. This toolbox has severa
 
 
 ```{r question7c}
+# Fitting the decision tree to training set
+dtree <- rpart(formula = spam ~.,data = training_set)
 
+# Predicting the output for test set
+pred_test <- predict(object = dtree,newdata = test_set,type = 'class')
+
+# Creating confusion matrix
+cm <- confusionMatrix(test_set[,15],pred_test)
+cm
 ```
 
 
@@ -475,8 +532,12 @@ For Matlab users, consider using the Statistics Toolbox. This toolbox has severa
 
 
 ```{r question7d}
-
+# Plotting Decision tree
+plot(dtree)
+text(dtree)
 ```
+
+**There are 8 terminal leaves with 15 total nodes.**
 
 
 #### Question 7e
@@ -485,8 +546,25 @@ For Matlab users, consider using the Statistics Toolbox. This toolbox has severa
 
 
 ```{r question7e}
+# ROC Curve for training set
+pred_training <- predict(object = dtree,newdata = training_set,type = 'class')
+nb.pred <- prediction(as.numeric(pred_training), as.numeric(training_set$spam))
+nb.roc.perf <- performance(nb.pred, "tpr", "fpr")
+plot(nb.roc.perf,xlab="False positive rate",ylab="True positive rate")
+pROC::auc(as.numeric(training_set$spam),as.numeric(pred_training),thresh = 0.5)
 
+# ROC Curve for test set
+nb.pred <- prediction(as.numeric(pred_test), as.numeric(test_set$spam))
+nb.roc.perf <- performance(nb.pred, "tpr", "fpr")
+plot(nb.roc.perf,xlab="False positive rate",ylab="True positive rate")
+pROC::auc(as.numeric(test_set$spam),as.numeric(pred_test),thresh = 0.5)
+
+# Confusion Matrix
+cm <- confusionMatrix(test_set[,15],pred_test)
+cm
 ```
+
+The accuracy is **0.9194** and the error rate is **0.0806**.
 
 
 #### Question 7f
@@ -495,7 +573,8 @@ For Matlab users, consider using the Statistics Toolbox. This toolbox has severa
 
 
 ```{r question7f}
-
+pruned <- prune(dtree,cp=dtree$cptable[which.min(dtree$cptable[,"xerror"]),"CP"])
+prp(pruned)
 ```
 
 
@@ -546,8 +625,6 @@ k_fold <- 10
 # music$folds <- createFolds(music$Top10, k = n_fold, list = FALSE)
 cv_index_list <- createFolds(music$Top10, k = k_fold, list = TRUE, returnTrain = FALSE)
 
-music_10fold_list <- list()
-
 # Checking the class label proportions
 for(i in 1:k_fold) {
     fold <- music$Top10[cv_index_list[[i]]]
@@ -557,8 +634,6 @@ for(i in 1:k_fold) {
     print(paste("Fold" , i , "length", fold_length, sep = " "))
     print(paste("Class Label(0)", round(class0_prop, 2), sep = " "))
     print(paste("Class Label(1)", round(class1_prop, 2), sep = " "))
-    # Creating/appending the 10 data frames from the folds
-    music_10fold_list <- list(music_10fold_list, music[music$folds == i,])
 }
 ```
 
@@ -585,7 +660,7 @@ for(k in k_values) {
     for(fold in 1:k_fold) {
         train_set <- music[-cv_index_list[[fold]], ] 
         test_set <- music[cv_index_list[[fold]], ] 
-        knn_predicted_values <- knn(train = train_set, test = test_set, cl = train_set$Top10, k = 1)
+        knn_predicted_values <- knn(train = train_set, test = test_set, cl = train_set$Top10, k = k)
         print(paste("Test set fold #", fold, sep = " "))
         cat("\n")
         accuracy <- round(Accuracy(knn_predicted_values, test_set$Top10), 2)
@@ -624,8 +699,8 @@ total_AUC <- 0
 for(fold in 1:k_fold) {
     train_set <- music[-cv_index_list[[1]], ] 
     test_set <- music[cv_index_list[[1]], ] 
-    tree_fit <- rpart(Top10 ~ ., method="class", data = train_set)
     
+    tree_fit <- rpart(Top10 ~ ., method="class", data = train_set)
     fancyRpartPlot(tree_fit, main = paste("Before Pruning - Fold #", fold, sep = " "))
     
     # Find cp with minimum Cross validate error from rpart results
@@ -636,7 +711,7 @@ for(fold in 1:k_fold) {
     fancyRpartPlot(ptree_fit, main = paste("After Pruning - Fold #", fold, sep = " "))
     
     # Calculating Accuracy. Error, AUC
-    test_prediction <- predict(tree_fit, test_set, type = 'class')
+    test_prediction <- predict(ptree_fit, test_set, type = 'class')
     print(paste("Test set fold #", fold, sep = " "))
     cat("\n")
     accuracy <- round(Accuracy(test_prediction, test_set$Top10), 2)
@@ -670,7 +745,7 @@ total_acc <- 0
 total_error_rate <- 0
 total_AUC <- 0
 
-# Running the Decision Tree with 10 - fold cross validation
+# Running the Naive bayes with 10 - fold cross validation
 # Accuracy, error, AUC are rounded off to two decimal points
 for(fold in 1:k_fold) {
     train_set <- music[-cv_index_list[[fold]], ] 
@@ -755,7 +830,7 @@ cat("\n==========================================================\n")
 
 ```{r question8g}
 # Intializing the cost variables
-cost_values <- c(0.01, 0.1, 1, 10, 10, 100)
+cost_values <- c(0.01, 0.1, 1, 10, 100)
 total_acc_list <- c()
 total_error_rate_list <- c()
 total_AUC_list <- c()
@@ -780,7 +855,7 @@ for(cost in cost_values) {
         svm_fit <- svm(as.factor(Top10) ~ ., data = train_set, kernel = "radial", cost = cost)
         
         # Calculating Accuracy. Error, AUC
-        test_prediction <- predict(rf_fit, test_set, type = 'class')
+        test_prediction <- predict(svm_fit, test_set, type = 'class')
         print(paste("Test set fold #", fold, sep = " "))
         cat("\n")
         accuracy <- round(Accuracy(test_prediction, test_set$Top10), 2)
