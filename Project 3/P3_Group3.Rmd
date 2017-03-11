@@ -486,7 +486,7 @@ Load in the spam data. You should not include the following columns in the class
 
 
 ```{r question7a}
-spam <- read.csv("spam.csv")
+spam <- read.csv("data/spam.csv")
 spam <- data.frame(spam[,-c(1,2,7,11,19,20)])
 head(spam)
 ```
