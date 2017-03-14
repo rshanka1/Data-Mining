@@ -33,6 +33,7 @@ installNewPackage("rpart.plot")
 # installNewPackage("httpuv")
 # installNewPackage("curlconverter")
 
+
 library(ROCR)
 library(plyr)
 library(caret)
@@ -470,7 +471,7 @@ cm
 plot(dtree)
 text(dtree)
 
-paste0("The intuition was facebook but the variable at the root of the tree is Instagram")
+paste0("The intuition was facebook but the variable at the root of the tree is LinkedIn")
 ```
 
 
@@ -540,7 +541,7 @@ plot(dtree)
 text(dtree)
 
 paste0("There are 8 terminal leaves")
-paste0("There are 15 total nodes")
+paste0("There are 7 total nodes")
 ```
 
 
@@ -578,6 +579,24 @@ paste0("The accuracy is 0.9194 and the error rate is 0.0806")
 ```{r question7f}
 pruned <- prune(dtree,cp=dtree$cptable[which.min(dtree$cptable[,"xerror"]),"CP"])
 prp(pruned)
+
+# First sized tree
+dtree1 <- rpart(formula = spam ~.,data = training_set,control = rpart.control(minsplit = 240))
+pred_test1 <- predict(object = dtree1,newdata = test_set,type = 'class')
+plot(dtree1)
+text(dtree1)
+cm1 <- confusionMatrix(test_set[,15],pred_test1)
+cm1
+paste0("The Accuracy remains 0.9194 but the prediction values in confusion matrix changed")
+
+# Second sized tree
+dtree2 <- rpart(formula = spam ~.,data = training_set,control = rpart.control(minsplit = 360))
+pred_test2 <- predict(object = dtree2,newdata = test_set,type = 'class')
+plot(dtree2)
+text(dtree2)
+cm2 <- confusionMatrix(test_set[,15],pred_test2)
+cm2
+paste0("The accuracy changes from 0.9194 to 0.9147")
 ```
 
 
