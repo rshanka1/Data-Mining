@@ -431,7 +431,7 @@ paste0("The gain from entropy for second split",Entropy_GAIN_SECOND)
 (4 points) Which node would be preferred to include next in the decision tree?
 
 
-** The gain from entropy for second split is higher and hence second split will be considered to be included in the decision tree**
+**The gain from entropy for second split is higher and hence second split will be considered to be included in the decision tree**
 
 
 #### Question 6
@@ -735,47 +735,53 @@ for(k in k_values) {
 
 
 ```{r question8d}
-# Intailize variables
-total_acc <- c()
-total_error_rate <- c()
-total_AUC <- c()
-
 # Running the Decision Tree with 10 - fold cross validation
 # Accuracy, error, AUC are rounded off to two decimal points
 decisionTree <- function() {
-    for(fold in 1:k_fold) {
-    train_set <- music[-cv_index_list[[1]], ] 
-    test_set <- music[cv_index_list[[1]], ] 
     
-    tree_fit <- rpart(Top10 ~ ., method="class", data = train_set)
-    fancyRpartPlot(tree_fit, main = paste("Before Pruning - Fold #", fold, sep = " "))
+    for(cp in c(0.01, 0.1)) {
+        
+        # Intailize variables
+        total_acc <- c()
+        total_error_rate <- c()
+        total_AUC <- c()
+        
+        cat("\n")
+        print(paste("Complexity Parameter used is", cp, sep = " "))
+        cat("\n")
+        for(fold in 1:k_fold) {
+            train_set <- music[-cv_index_list[[k_fold]], ] 
+            test_set <- music[cv_index_list[[k_fold]], ] 
+            
+            tree_fit <- rpart(Top10 ~ ., method="class", data = train_set, minsplit = 4, minbucket = 2)
+            fancyRpartPlot(tree_fit, main = paste("Before Pruning - Fold #", fold, sep = " "))
+            
+            # # Find cp with minimum Cross validate error from rpart results
+            # min_error_cp <- tree_fit$cptable[which.min(tree_fit$cptable[,"xerror"]), "CP"]
+            # 
+            # # pruning the tree with minimum cross validate error
+            # ptree_fit <- prune(tree_fit, cp = min_error_cp)
+            # plot(ptree_fit, main = paste("After Pruning - Fold #", fold, sep = " "))
+            
+            # Calculating Accuracy. Error, AUC
+            test_prediction <- predict(tree_fit, test_set, type = 'class')
+            accuracy <- round(Accuracy(test_prediction, test_set$Top10), 2)
+            error_rate <- 1 - accuracy
+            AUC <- round(AUC(test_prediction, test_set$Top10), 2)
+            total_acc <- c(total_acc, accuracy)
+            total_error_rate <- c(total_error_rate, error_rate)
+            total_AUC <- c(total_AUC, AUC)
+        }
     
-    # Find cp with minimum Cross validate error from rpart results
-    min_error_cp <- tree_fit$cptable[which.min(tree_fit$cptable[,"xerror"]), "CP"]
-    
-    # pruning the tree with minimum cross validate error
-    ptree_fit <- prune(tree_fit, cp = min_error_cp)
-    fancyRpartPlot(ptree_fit, main = paste("After Pruning - Fold #", fold, sep = " "))
-    
-    # Calculating Accuracy. Error, AUC
-    test_prediction <- predict(ptree_fit, test_set, type = 'class')
-    accuracy <- round(Accuracy(test_prediction, test_set$Top10), 2)
-    error_rate <- 1 - accuracy
-    AUC <- round(AUC(test_prediction, test_set$Top10), 2)
-    total_acc <- c(total_acc, accuracy)
-    total_error_rate <- c(total_error_rate, error_rate)
-    total_AUC <- c(total_AUC, AUC)
+        report <- data.frame(Fold = c(1:10), Accuracy = total_acc, Error_rate = total_error_rate, AUC = total_AUC)
+        print(report)
+        cat("==========================================================\n")
+        print(paste("Overall accuracy is", round(sum(total_acc) / k_fold, 2), sep = " "))
+        print(paste("Overall error is", round(sum(total_error_rate) / k_fold, 2), sep =" "))
+        print(paste("Overall area under the curve(AUC) is", round(sum(total_AUC) / k_fold, 2), sep = " "))
+        cat("\n==========================================================\n")
     }
-    
-    report <- data.frame(Fold = c(1:10), Accuracy = total_acc, Error_rate = total_error_rate, AUC = total_AUC)
-    print(report)
-    cat("==========================================================\n")
-    print(paste("Overall accuracy is", round(sum(total_acc) / k_fold, 2), sep = " "))
-    print(paste("Overall error is", round(sum(total_error_rate) / k_fold, 2), sep =" "))
-    print(paste("Overall area under the curve(AUC) is", round(sum(total_AUC) / k_fold, 2), sep = " "))
-    cat("\n==========================================================\n")
 }
-
 decisionTree()
 ```
 
@@ -828,17 +834,47 @@ naiveBayesModel()
 
 (5 points) Discuss whether the selection of the negative samples included in the data set may influence the results.
 
-**Answer**
+**It is true that an increase in the ratio of positive to negative samples was found to greatly influence most of the evaluating parameters of Machine Learning. In a majority of cases, a training dataset consisting of a disprortionately high number of examples from one class will result in a classifier that is biased towards this majority class**
 
 
 
 #### Question 8i
 
-(5 points (bonus)) Re-run the analysis in (c) using a nested cross-validation to determine the best value of k and to determine the best parameters of the SVM.
+(5) points (bonus)) Re-run the analysis in (c) using a nested cross-validation to determine the best value of k and to determine the best parameters of the SVM.
 
 
 ```{r question8i}
+# Setting the k values for KNN
+k_values <- c(1, 3, 5, 7, 9)
 
+# Intializing the variables
+max_accuracy <- 0
+max_k <- 0
+
+# Running the KNN for the mentioned K values
+# with 10 - fold cross validation
+# Accuracy, error, AUC are rounded off to two decimal points
+for(k in k_values) {
+    total_acc <- c()
+    total_error_rate <- c()
+    total_AUC <- c()
+    for(fold in 1:k_fold) {
+        train_set <- music[-cv_index_list[[k_fold]], ] 
+        test_set <- music[cv_index_list[[k_fold]], ] 
+        knn_predicted_values <- knn(train = train_set, test = test_set, cl = train_set$Top10, k = k)
+        accuracy <- round(Accuracy(knn_predicted_values, test_set$Top10), 2)
+        error_rate <- 1 - accuracy
+        AUC <- round(AUC(knn_predicted_values, test_set$Top10), 2)
+        total_acc <- c(total_acc, accuracy)
+    }
+    current_accuracy <- sum(total_acc) / k_fold
+    if(current_accuracy > max_accuracy) {
+        max_accuracy <- current_accuracy
+        max_k <- k
+    }
+        
+}
+print(paste("The best value of k is", max_k, sep = " "))
 ```
 
 
