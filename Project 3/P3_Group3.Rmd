@@ -1,6 +1,6 @@
 ---
 title: "Project 3 Group 3"
-author: "Nishanth Gandhidoss, Raghavendar Shankar"
+author: "Nishanth Gandhidoss, Raghavendran Shankar"
 date: "4 March 2017"
 output: html_document
 ---
@@ -20,7 +20,6 @@ installNewPackage <- function(packageName) {
                 install.packages(packageName, repos = "http://cran.us.r-project.org", dependencies=TRUE)
         }
 }
-
 installNewPackage("ROCR")
 installNewPackage("plyr")
 installNewPackage("caret")
@@ -290,22 +289,18 @@ abline(a=0, b=1)
 
 Suppose that we want to select between two prediction models, M~1~ and M~2~. We have performed 10 rounds of 10-fold cross-validation on each model, where the same data partitioning in round i is used for both M~1~ and M~2~. The error rates obtained for M~1~ are 30.5, 32.2, 20.7, 20.6, 31.0, 41.0, 27.7, 26.0, 21.5, 26.0. The error rates for M~2~ are 22.4, 14.5, 22.4, 19.6, 20.7, 20.4, 22.1, 19.4, 16.2, 35.0. Comment on whether one model is significantly better than the other considering a significance level of 1%.
 
-**Answer**
-
-Hypothesis testing can be done to see if there are significant difference in error rates. Since same data partitioning is used for both M1 and M2 i.e same test set, the paired observation hypothesis testing to compare means is
-
-H0: me1 - me2 = 0
-
-H1: me1 - me2 != 0 where me1 is the mean error of M1 and me2 is the mean error of M2
 
 ```{r question4}
+paste0("Hypothesis testing can be done to see if there are significant difference in error rates. Since same data partitioning is used for both M1 and M2 i.e same test set, the paired observation hypothesis testing to compare means is
+H0: me1 - me2 = 0
+H1: me1 - me2 != 0 where me1 is the mean error of M1 and me2 is the mean error of M2")
+
 M1 = c(30.5, 32.2, 20.7, 20.6, 31.0, 41.0, 27.7, 26.0, 21.5, 26.0)
 M2 = c(22.4, 14.5, 22.4, 19.6, 20.7, 20.4, 22.1, 19.4, 16.2, 35.0)
 
 t.test(M1,M2,paired = TRUE,conf.level = 0.99)
+paste0("Since p-value is 0.0437 which is greater than the significance level of 0.01, we fail to reject the null hypothesis i.e the two models are not significantly different.")
 ```
-
-Since p-value is 0.0437 which is greater than the significance level of 0.01, we fail to reject the null hypothesis i.e the two models are not significantly different.
 
 
 #### Question 5
@@ -369,7 +364,29 @@ $$
 
 
 ```{r question5a}
+# Calculate GINI for overall data
+GINI_N <- 1- (100/(100+50+60))^2 - (50/(100+50+60))^2 - (60/(100+50+60))^2
+paste0("The overall GINI Index is ",GINI_N)
 
+# Calculate GINI Index for first split
+GINI_N_11 <- 1- (62/(62+8+0))^2 - (8/(62+8+0))^2 - (0)
+paste0("The Gini index for the first split on first node is ",GINI_N_11)
+GINI_N_12 <- 1- (38/(38+42+60))^2 - (42/(38+42+60))^2 - (60/(38+42+60))^2
+paste0("The Gini index for the first split on second node is ",GINI_N_12)
+
+#Calculate GINI Index for second split
+GINI_N_21 <- 1-(65/(65+20+0))^2 - (20/(65+20+0))^2 - (0)
+paste0("The Gini index for the second split on first node is ",GINI_N_21)
+GINI_N_22 <- 1-(21/(21+19+20))^2 - (19/(21+19+20))^2 -(20/(21+19+20))^2
+paste0("The Gini index for the second split on second node is ",GINI_N_22)
+GINI_N_23 <- 1-(14/(14+11+40))^2 - (11/(14+11+40))^2 -(40/(14+11+40))^2
+paste0("The Gini index for the second split on third node is ",GINI_N_23)
+
+# Calculate Gain for first split
+GINI_GAIN_FIRST <- GINI_N - (62+8+0)/210 * GINI_N_11 - (38+42+60)/210 * GINI_N_12
+paste0("The gain from the gini for first split is ",GINI_GAIN_FIRST)
+GINI_GAIN_SECOND <- GINI_N - (65+20+0)/210 * GINI_N_21 - (21+19+20)/210 * GINI_N_22 - (14+11+40)/210 * GINI_N_23
+paste0("The gain from the gini for second split is ",GINI_GAIN_SECOND)
 ```
 
 
@@ -378,9 +395,7 @@ $$
 (4 points) Which node would be preferred to include next in the decision tree?
 
 
-```{r question5b}
-
-```
+**The gain from gini for first split is higher and hence first split will be considered to be included in the decision tree**
 
 
 #### Question 5c
@@ -389,7 +404,25 @@ $$
 
 
 ```{r question5c}
+Entropy_N <- - (100/210) * log(100/210) - (50/210) * log(50/210) - (60/210) * log(60/210)
+paste0("The entropy for the root node is", Entropy_N)
 
+Entropy_N_11 <- - (62/70) * log(62/70) - (8/70) * log(8/70) - 0
+paste0("The entropy for the first split first node is", Entropy_N_11)
+Entropy_N_12 <- - (38/140) * log(38/140) - (42/140) * log(42/140) - (60/140) * log(60/140)
+paste0("The entropy for the first split second node is", Entropy_N_12)
+
+Entropy_N_21 <- -(65/85)*log(65/85) - (20/85)*log(20/85) - 0
+paste0("The entropy for the second split first node is", Entropy_N_21)
+Entropy_N_22 <- -(21/60)*log(21/60) - (19/60)*log(19/60) - (20/60)*log(20/60)
+paste0("The entropy for the second split second node is", Entropy_N_22)
+Entropy_N_23 <- -(14/65)*log(14/65) - (11/65)*log(11/65) - (40/65)*log(40/65)
+paste0("The entropy for the second split third node is", Entropy_N_23)
+
+Entropy_GAIN_FIRST <- Entropy_N - (62+8+0)/210 * Entropy_N_11 - (38+42+60)/210 * Entropy_N_12
+paste0("The gain from entropy for first split",Entropy_GAIN_FIRST)
+Entropy_GAIN_SECOND <- Entropy_N - (65+20+0)/210 * Entropy_N_21 - (21+19+20)/210 * Entropy_N_22 - (14+11+40)/210 * Entropy_N_23
+paste0("The gain from entropy for second split",Entropy_GAIN_SECOND)
 ```
 
 
@@ -398,9 +431,7 @@ $$
 (4 points) Which node would be preferred to include next in the decision tree?
 
 
-```{r question5d}
-
-```
+** The gain from entropy for second split is higher and hence second split will be considered to be included in the decision tree**
 
 
 #### Question 6
@@ -429,6 +460,7 @@ head(data1)
 
 # Creating grouped barplots
 ggplot(data = data1,aes(x = Age,y = Count))+geom_bar(aes(fill = Value),stat = "identity",position = "stack")+facet_grid(.~Network)
+
 ```
 
 
@@ -467,8 +499,7 @@ plot(dtree)
 text(dtree)
 ```
 
-
-**The intuition was facebook but the variable at the root of the tree is Instagram.**
+**The intuition was facebook but the variable at the root of the tree is LinkedIn.**
 
 
 #### Question 7
@@ -537,7 +568,7 @@ plot(dtree)
 text(dtree)
 ```
 
-**There are 8 terminal leaves with 15 total nodes.**
+**There are 8 terminal leaves and 7 total nodes.**
 
 
 #### Question 7e
@@ -564,19 +595,39 @@ cm <- confusionMatrix(test_set[,15],pred_test)
 cm
 ```
 
-The accuracy is **0.9194** and the error rate is **0.0806**.
-
+**The accuracy is 0.9194 and the error rate is 0.0806.**
 
 #### Question 7f
 
 (8 points) Try pruning the tree, explore 2 other sized tree and report the classification performance in either case.
 
 
-```{r question7f}
+```{r question7f, }
 pruned <- prune(dtree,cp=dtree$cptable[which.min(dtree$cptable[,"xerror"]),"CP"])
 prp(pruned)
+
+# First sized tree
+dtree1 <- rpart(formula = spam ~.,data = training_set,control = rpart.control(minsplit = 240))
+pred_test1 <- predict(object = dtree1,newdata = test_set,type = 'class')
+plot(dtree1)
+text(dtree1)
+cm1 <- confusionMatrix(test_set[,15],pred_test1)
+cm1
 ```
 
+**The Accuracy remains 0.9194 but the prediction values in confusion matrix changed.**
+
+```{r question7f-2}
+# Second sized tree
+dtree2 <- rpart(formula = spam ~.,data = training_set,control = rpart.control(minsplit = 360))
+pred_test2 <- predict(object = dtree2,newdata = test_set,type = 'class')
+plot(dtree2)
+text(dtree2)
+cm2 <- confusionMatrix(test_set[,15],pred_test2)
+cm2
+```
+
+**The accuracy changes from 0.9194 to 0.9147**
 
 #### Question 8
 
@@ -605,7 +656,6 @@ music <-  music_real[, -c(2, 3, 4, 5, 6 , 9, 11)]
 sapply(music, function(x) sum(is.na(x)))
 ```
 
-It looks like the data has no NA values that to be concerned about.
 
 #### Question 8b
 
@@ -658,8 +708,8 @@ for(k in k_values) {
     total_error_rate <- c()
     total_AUC <- c()
     for(fold in 1:k_fold) {
-        train_set <- music[-cv_index_list[[fold]], ] 
-        test_set <- music[cv_index_list[[fold]], ] 
+        train_set <- music[-cv_index_list[[1]], ] 
+        test_set <- music[cv_index_list[[1]], ] 
         knn_predicted_values <- knn(train = train_set, test = test_set, cl = train_set$Top10, k = k)
         accuracy <- round(Accuracy(knn_predicted_values, test_set$Top10), 2)
         error_rate <- 1 - accuracy
@@ -778,10 +828,8 @@ naiveBayesModel()
 
 (5 points) Discuss whether the selection of the negative samples included in the data set may influence the results.
 
+**Answer**
 
-```{r question8h}
-
-```
 
 
 #### Question 8i
