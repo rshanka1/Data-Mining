@@ -1,0 +1,41 @@
+---
+title: "Machine Learning application - Chicago Divvy Bikes"
+author: "Nishanth Gandhidoss, Raghavendran Shankar"
+date: "21 March 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r include=FALSE}
+# installing the packages
+# Function to Install packages
+# checks the available.packages before
+installNewPackage <- function(packageName) {
+        if(packageName  %in% rownames(installed.packages()) == FALSE)
+        {
+                install.packages(packageName, repos = "http://cran.us.r-project.org", dependencies=TRUE)
+        }
+}
+
+
+```
+
+#### Chicago Divvy Bikes 
+
+**Write something about divvy bikes.**
+
+#### Data Preprocessing
+
+
+
+```{r Data Preprocessing}
+
+```
+
+
+
+**End of Assignment**
