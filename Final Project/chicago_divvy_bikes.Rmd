@@ -28,54 +28,78 @@ installNewPackage <- function(packageName) {
 
 **Write something about divvy bikes.**
 
-#### Data Preprocessing
+#### Loading the dataset
 
 
 
-```{r Data Preprocessing}
-#Load trips data
-setwd("~/")
-divvy_trips_q1 <- read.csv('data/Divvy_Trips_2016_Q1.csv')
-divvy_trips_q3 <- read.csv('data/Divvy_Trips_2016_Q3.csv')
-divvy_trips_q4 <- read.csv('data/Divvy_Trips_2016_Q4.csv')
-divvy_trips_04 <- read.csv('data/Divvy_Trips_2016_04.csv')
-divvy_trips_05 <- read.csv('data/Divvy_Trips_2016_05.csv')
-divvy_trips_06 <- read.csv('data/Divvy_Trips_2016_06.csv')
+```{r Loading the data}
+# Loading divvy trip data
+divvy_trips_q1 <- read.csv('data/Divvy_Trips_2016_Q1Q2/Divvy_Trips_2016_Q1.csv')
+divvy_trips_q3 <- read.csv('data/Divvy_Trips_2016_Q3Q4/Divvy_Trips_2016_Q3.csv')
+divvy_trips_q4 <- read.csv('data/Divvy_Trips_2016_Q3Q4/Divvy_Trips_2016_Q4.csv')
+divvy_trips_04 <- read.csv('data/Divvy_Trips_2016_Q1Q2/Divvy_Trips_2016_04.csv')
+divvy_trips_05 <- read.csv('data/Divvy_Trips_2016_Q1Q2/Divvy_Trips_2016_05.csv')
+divvy_trips_06 <- read.csv('data/Divvy_Trips_2016_Q1Q2/Divvy_Trips_2016_06.csv')
+
 # Load divvy station data
-divvy_stations_q1q2 <- read.csv('data/Divvy_Stations_2016_Q1Q2.csv')
-divvy_stations_q3 <- read.csv('data/Divvy_Stations_2016_Q3.csv')
-divvy_stations_q4 <- read.csv('data/Divvy_Stations_2016_Q4.csv')
+divvy_stations_q1q2 <- read.csv('data/Divvy_Trips_2016_Q1Q2/Divvy_Stations_2016_Q1Q2.csv')
+divvy_stations_q3 <- read.csv('data/Divvy_Trips_2016_Q3Q4/Divvy_Stations_2016_Q3.csv')
+divvy_stations_q4 <- read.csv('data/Divvy_Trips_2016_Q3Q4/Divvy_Stations_2016_Q4.csv')
 ```
 
-```{r}
-# Combining data for 2nd quarter
+
+#### Merging the data frame
+
+
+
+```{r Merging the data frame}
+# Combining trip data for 2nd quarter
 divvy_trips_q2 <- data.frame(rbind(divvy_trips_04,divvy_trips_05,divvy_trips_06))
+
+# Adding quarter column to each dataset
+divvy_trips_q1$quarter <- "Q1"
+divvy_trips_q2$quarter <- "Q2"
+divvy_trips_q3$quarter <- "Q3"
+divvy_trips_q4$quarter <- "Q4"
 
 # Merging and preprocessing 1st and 2nd quarter
 divvy_trips_q1q2 <- data.frame(rbind(divvy_trips_q1, divvy_trips_q2))
 divvy_q1q2 <- merge(divvy_trips_q1q2, divvy_stations_q1q2, by.x = "from_station_id", by.y = "id")
 divvy_q1q2$name <- NULL
-colnames(divvy_q1q2)[13:16] <- c("from_station_latitude","from_station_longitude","from_station_dpcapacity","from_station_online_date")
+colnames(divvy_q1q2)[13:16] <- c("from_station_latitude", "from_station_longitude",
+                                 "from_station_dpcapacity", "from_station_online_date")
 divvy_q1q2 <- merge(divvy_q1q2, divvy_stations_q1q2, by.x = "to_station_id", by.y = "id")
 divvy_q1q2$name <- NULL
-colnames(divvy_q1q2)[17:20] <- c("to_station_latitude","to_station_longitude","to_station_dpcapacity","to_station_online_date")
+colnames(divvy_q1q2)[17:20] <- c("to_station_latitude", "to_station_longitude", 
+                                 "to_station_dpcapacity", "to_station_online_date")
 
 # Merging and preprocessing 3rd and 4th quarter
 divvy_q3 <- merge(divvy_trips_q3,divvy_stations_q3,by.x = "from_station_id",by.y = "id")
 divvy_q3$name <- NULL
-colnames(divvy_q3)[13:16] <- c("from_station_latitude","from_station_longitude","from_station_dpcapacity","from_station_online_date")
+colnames(divvy_q3)[13:16] <- c("from_station_latitude", "from_station_longitude",
+                               "from_station_dpcapacity", "from_station_online_date")
 divvy_q3 <- merge(divvy_q3,divvy_stations_q3,by.x = "to_station_id",by.y = "id")
 divvy_q3$name <- NULL
-colnames(divvy_q3)[17:20] <- c("to_station_latitude","to_station_longitude","to_station_dpcapacity","to_station_online_date")
+colnames(divvy_q3)[17:20] <- c("to_station_latitude", "to_station_longitude", 
+                               "to_station_dpcapacity", "to_station_online_date")
 
 divvy_q4 <- merge(divvy_trips_q4,divvy_stations_q4,by.x = "from_station_id",by.y = "id")
 divvy_q4$name <- NULL
-colnames(divvy_q4)[13:16] <- c("from_station_latitude","from_station_longitude","from_station_dpcapacity","from_station_online_date")
+colnames(divvy_q4)[13:16] <- c("from_station_latitude", "from_station_longitude",
+                               "from_station_dpcapacity", "from_station_online_date")
 divvy_q4 <- merge(divvy_q4,divvy_stations_q4,by.x = "to_station_id",by.y = "id")
 divvy_q4$name <- NULL
-colnames(divvy_q4)[17:20] <- c("to_station_latitude","to_station_longitude","to_station_dpcapacity","to_station_online_date")
+colnames(divvy_q4)[17:20] <- c("to_station_latitude", "to_station_longitude", 
+                               "to_station_dpcapacity", "to_station_online_date")
 
 divvy_q3q4 <- data.frame(rbind(divvy_q3,divvy_q4))
+
+# Making into a single dataframe
+divvy <- data.frame(rbind(divvy_q1q2, divvy_q3q4))
+
+if(!file.exists("data/divvy.csv")) {
+    write.csv(divvy, "data/divvy.csv")
+}
 ```
 
 
@@ -83,13 +107,24 @@ divvy_q3q4 <- data.frame(rbind(divvy_q3,divvy_q4))
 #dummy check code
 x <- divvy_q1q2$from_station_id[as.character(divvy_q1q2$from_station_name) != as.character(divvy_q1q2$name)]
 unique(x)
-dummy <- divvy_q1q2[divvy_q1q2$from_station_id == x, ]
+dummy <- divvy_q1q2[divvy_q1q2$from_station_id %in% x, ]
 q1_repeat_station <- unique(dummy$from_station_name)
-q1_repeat_station <- unique(dummy$name)
+q1_repeat_station2 <- unique(dummy$name)
 missed_station_name <- data.frame(q1_repeat_station, q1_repeat_station2)
 q1_repeat_station <- unique(dummy$from_station_name)
 q1_repeat_station1 <- unique(dummy$name)
-missed_station_name <- data.frame(q1_repeat_station, q1_repeat_station1)
+missed_station_nameq1q2 <- data.frame(q1_repeat_station, q1_repeat_station1)
+
+
+x <- divvy_q3q4$from_station_id[as.character(divvy_q3q4$from_station_name) != as.character(divvy_q3q4$name)]
+unique(x)
+dummy <- divvy_q3q4[divvy_q3q4$from_station_id %in% x, ]
+q1_repeat_station <- unique(dummy$from_station_name)
+q1_repeat_station2 <- unique(dummy$name)
+missed_station_name <- data.frame(q1_repeat_station, q1_repeat_station2)
+q1_repeat_station <- unique(dummy$from_station_name)
+q1_repeat_station1 <- unique(dummy$name)
+missed_station_nameq3q4 <- data.frame(q1_repeat_station, q1_repeat_station1)
 ```
 
 ```{r}
