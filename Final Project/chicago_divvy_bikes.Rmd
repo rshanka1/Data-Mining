@@ -66,30 +66,30 @@ divvy_trips_q4$quarter <- "Q4"
 divvy_trips_q1q2 <- data.frame(rbind(divvy_trips_q1, divvy_trips_q2))
 divvy_q1q2 <- merge(divvy_trips_q1q2, divvy_stations_q1q2, by.x = "from_station_id", by.y = "id")
 divvy_q1q2$name <- NULL
-colnames(divvy_q1q2)[13:16] <- c("from_station_latitude", "from_station_longitude",
+colnames(divvy_q1q2)[14:17] <- c("from_station_latitude", "from_station_longitude",
                                  "from_station_dpcapacity", "from_station_online_date")
 divvy_q1q2 <- merge(divvy_q1q2, divvy_stations_q1q2, by.x = "to_station_id", by.y = "id")
 divvy_q1q2$name <- NULL
-colnames(divvy_q1q2)[17:20] <- c("to_station_latitude", "to_station_longitude", 
+colnames(divvy_q1q2)[18:21] <- c("to_station_latitude", "to_station_longitude", 
                                  "to_station_dpcapacity", "to_station_online_date")
 
 # Merging and preprocessing 3rd and 4th quarter
 divvy_q3 <- merge(divvy_trips_q3,divvy_stations_q3,by.x = "from_station_id",by.y = "id")
 divvy_q3$name <- NULL
-colnames(divvy_q3)[13:16] <- c("from_station_latitude", "from_station_longitude",
+colnames(divvy_q3)[14:17] <- c("from_station_latitude", "from_station_longitude",
                                "from_station_dpcapacity", "from_station_online_date")
 divvy_q3 <- merge(divvy_q3,divvy_stations_q3,by.x = "to_station_id",by.y = "id")
 divvy_q3$name <- NULL
-colnames(divvy_q3)[17:20] <- c("to_station_latitude", "to_station_longitude", 
+colnames(divvy_q3)[18:21] <- c("to_station_latitude", "to_station_longitude", 
                                "to_station_dpcapacity", "to_station_online_date")
 
 divvy_q4 <- merge(divvy_trips_q4,divvy_stations_q4,by.x = "from_station_id",by.y = "id")
 divvy_q4$name <- NULL
-colnames(divvy_q4)[13:16] <- c("from_station_latitude", "from_station_longitude",
+colnames(divvy_q4)[14:17] <- c("from_station_latitude", "from_station_longitude",
                                "from_station_dpcapacity", "from_station_online_date")
 divvy_q4 <- merge(divvy_q4,divvy_stations_q4,by.x = "to_station_id",by.y = "id")
 divvy_q4$name <- NULL
-colnames(divvy_q4)[17:20] <- c("to_station_latitude", "to_station_longitude", 
+colnames(divvy_q4)[18:21] <- c("to_station_latitude", "to_station_longitude", 
                                "to_station_dpcapacity", "to_station_online_date")
 
 divvy_q3q4 <- data.frame(rbind(divvy_q3,divvy_q4))
