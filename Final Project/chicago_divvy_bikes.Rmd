@@ -96,11 +96,40 @@ divvy_q3q4 <- data.frame(rbind(divvy_q3,divvy_q4))
 
 # Making into a single dataframe
 divvy <- data.frame(rbind(divvy_q1q2, divvy_q3q4))
+```
 
+
+```{r Creating Seasonality}
+divvy$month <- unlist(lapply(strsplit(as.character(divvy$starttime), "/"), function(x) x[1]))
+divvy$month <- as.character(divvy$month)
+
+divvy$Season[divvy$month == "9" | divvy$month == "10" 
+             | divvy$month == "11" ] <- "Fall"
+divvy$Season[divvy$month == "12" | divvy$month == "1" 
+             | divvy$month == "2" ] <- "Winter"
+divvy$Season[divvy$month == "3" | divvy$month == "4" 
+             | divvy$month == "5" ] <- "Spring"
+divvy$Season[divvy$month == "6" | divvy$month == "7" 
+             | divvy$month == "8" ] <- "Summer"
+
+divvy$Season <- factor(divvy$Season)
+table(divvy$Season)
+```
+
+
+
+```{r Verifying ffor missing values}
+sapply(divvy, function(x) sum(is.na(x)))
+```
+
+
+```{r Writing to a csv file}
 if(!file.exists("data/divvy.csv")) {
     write.csv(divvy, "data/divvy.csv")
 }
 ```
+
+
 
 
 ```{r}
