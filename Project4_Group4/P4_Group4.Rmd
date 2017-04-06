@@ -23,15 +23,29 @@ installNewPackage <- function(packageName) {
 
 installNewPackage("caret")
 installNewPackage("randomForest")
+installNewPackage("rpart")
 installNewPackage("MLmetrics")
 installNewPackage("e1071")
 installNewPackage("class")
+installNewPackage("caTools")
+installNewPackage("ROCR")
+installNewPackage("pROC")
+installNewPackage("plyr")
+installNewPackage("adabag")
+installNewPackage("readr")
 
 library(caret)
 library(randomForest)
+library(rpart)
 library(MLmetrics)
 library(e1071)
 library(class)
+library(caTools)
+library(ROCR)
+library(pROC)
+library(plyr)
+library(adabag)
+library(readr)
 ```
 
 
@@ -102,7 +116,7 @@ for(i in 1:k_fold) {
 
 
 ```{r question8f}
-Intailize variables
+# Intailize variables
 total_acc <- c()
 total_error_rate <- c()
 total_AUC <- c()
@@ -256,7 +270,14 @@ For this problem, you will work to classify e-mail messages as spam or not. The 
 Load in the spam data. You should not include the following columns in the classification task: isuid, id, domain, spampct, category, and cappct.
 
 ```{r Question1a}
+# Loading the dataset
+spam_dataset <- read.csv('data/spam.csv')
 
+# Removing some of the columns
+spam_dataset <- spam_dataset[c(-1,-2,-7,-11,-19,-20)]
+
+# Checking for NA values in the data
+sapply(spam_dataset, function(x) sum(is.na(x)))
 ```
 
 
@@ -265,7 +286,15 @@ Load in the spam data. You should not include the following columns in the class
 (4 points) Split the data into a training and test set with an 80/20 split of the data.
 
 ```{r Question1b}
+# Setting the seed
+set.seed(123)
 
+# Random Split index variable
+split <- sample.split(Y = spam_dataset$spam,SplitRatio = 80/100)
+
+# Preparing Train and Test
+train_spam <- subset(x = spam_dataset,split == TRUE)
+test_spam <- subset(x = spam_dataset,split == FALSE)
 ```
 
 
@@ -274,7 +303,30 @@ Load in the spam data. You should not include the following columns in the class
 (8 points) Use a Naive Bayes classifier to predict spam. Calculate and report the accuracy, error, and AUC performance on the testing data.
 
 ```{r Question1c}
+# Training the model
+nbayes <- naiveBayes(x = train_spam[-15], y = train_spam$spam)
 
+# Predicting the test set on the trained model
+nb_pred <- predict(object = nbayes, newdata = test_spam[-15])
+
+# Function to report accuracy, error and AUC
+report <- function(test, pred) {
+    
+    # Confusion Matrix
+    conf <- confusionMatrix(test$spam, pred)
+    print(paste0("Accuracy is ", round(conf$overall[["Accuracy"]], 2)))
+    print(paste0("Error rate is ", round(1-conf$overall[["Accuracy"]], 2)))
+    
+    # ROC Curve
+    prediction <- prediction(as.numeric(nb_pred), as.numeric(test$spam))
+    roc_perf <- performance(prediction, "tpr", "fpr")
+    print(paste0("AUC value is", round(auc(as.numeric(test$spam), as.numeric(pred)), 2)))
+    plot(roc_perf, xlab="False positive rate", ylab="True positive rate")
+    
+}
+
+# Calling the report
+report(test_spam, nb_pred)
 ```
 
 
@@ -283,7 +335,14 @@ Load in the spam data. You should not include the following columns in the class
 (8 points) Learn a decision tree to predict spam. Calculate and report the accuracy, error, and AUC performance on the testing data.
 
 ```{r Question1d}
+# Training the model
+dtree <- rpart(formula = spam ~., data = train_spam)
 
+# Predicting the test set on the trained model
+dtree_pred <- predict(object = dtree, newdata = test_spam[-15], type = 'class')
+
+# Calling the report
+report(test_spam, dtree_pred)
 ```
 
 
@@ -292,16 +351,69 @@ Load in the spam data. You should not include the following columns in the class
 (10 points) Use Random Forests to predict spam. Calculate and report the accuracy, error, and AUC performance on the testing data.
 
 ```{r Question1e}
+# Training the model
+rand <- randomForest(x = train_spam[-15], y = train_spam$spam)
 
+# Predicting the test set on the trained model
+rand_pred <- predict(object = rand, newdata = test_spam[-15])
+
+# Calling the report
+report(test_spam, rand_pred)
 ```
 
 
 #### Question1f
 
-(12 points) Learn a support vector machine (SVM) with a RBF kernel to predict spam. Use cross-validation to pick the best parameters for the kernel and SVM on the training set. Consider at least the following values for cost: f0:01; 0:1; 1; 10; 100g Calculate and report the accuracy, error, and AUC performance on the testing data for the best model found.
+(12 points) Learn a support vector machine (SVM) with a RBF kernel to predict spam. Use cross-validation to pick the best parameters for the kernel and SVM on the training set. Consider at least the following values for cost: {0:01; 0:1; 1; 10; 100} Calculate and report the accuracy, error, and AUC performance on the testing data for the best model found.
 
 ```{r Question1f}
+# Intializing the cost variables
+cost_values <- c(0.01, 0.1, 1, 10, 100)
 
+# Intailize variables
+total_acc <- c()
+total_error_rate <- c()
+total_AUC <- c()
+
+# Running the Support Vector machine for cost values
+# 0.01, 0.1, 1, 10, 10, 100 with 10 - fold cross validation
+# Accuracy, error, AUC are rounded off to two decimal points
+for(cost in cost_values) {
+
+    # Fitting the model
+    svm_fit <- svm(as.factor(spam) ~ ., data = train_spam, kernel = "radial", cost = cost)
+
+    # Calculating Accuracy. Error, AUC
+    test_prediction <- predict(svm_fit, test_spam, type = 'class')
+    accuracy <- round(Accuracy(test_prediction, test_spam$spam), 2)
+    error_rate <- 1 - accuracy
+    pred <- revalue(test_prediction, c("no" = 0, "yes" = 1))
+    actual <- revalue(test_spam$spam, c("no" = 0, "yes" = 1))
+    AUC <- round(AUC(pred, actual), 2)
+    total_acc <- c(total_acc, accuracy)
+    total_error_rate <- c(total_error_rate, error_rate)
+    total_AUC <- c(total_AUC, AUC)
+}
+report <- data.frame(Cost_Values = cost_values, Accuracy = total_acc, Error_rate = total_error_rate,
+                     AUC = total_AUC)
+print(report)
+
+max_acc_index <- which.max(total_acc)
+best_cost <- cost_values[max_acc_index]
+best_acc <- total_acc[max_acc_index]
+best_error_rate <- total_error_rate[max_acc_index]
+best_AUC <- total_AUC[max_acc_index]
+
+cat("==========================================================\n")
+print(paste("Best model is one with cost as", best_cost, sep = " "))
+print(paste("Best model accuracy is", round(best_acc, 2), sep = " "))
+print(paste("Best model error is", round(best_error_rate, 2), sep =" "))
+print(paste("Best model area under the curve(AUC) is", round(best_AUC, 2), sep = " "))
+cat("\n==========================================================\n")
+
+# Taking away the best model(cost is 1)
+svm_fit <- svm(as.factor(spam) ~ ., data = train_spam, kernel = "radial", cost = 1)
+svm_pred <- predict(svm_fit, test_spam, type = 'class')
 ```
 
 
@@ -310,7 +422,25 @@ Load in the spam data. You should not include the following columns in the class
 (12 points) Examine which samples are mis-classified by some of the above models (construct a matrix with a column of predictions for each method: Naive Bayes, Decision Trees, SVMs). Create an ensemble predictor that takes the majority vote of the three models. Calculate and report the accuracy, error, and AUC performance on the testing data.
 
 ```{r Question1g}
+# Doing the ensemble method
+pred_df <- data.frame(Naive_Bayes = nb_pred, Decision_Tree = dtree_pred, SVM = svm_pred)
+pred_df_numeric <- data.frame(revalue(nb_pred, c("no" = 0, "yes" = 1)), 
+                              revalue(dtree_pred, c("no" = 0, "yes" = 1)),
+                              revalue(svm_pred, c("no" = 0, "yes" = 1)))
+spam <- rowMeans(apply(pred_df_numeric, 2, function(x) as.numeric(x)))
+pred_df$spam <- ifelse(mask > .5, "yes", "no")
 
+# Calculating accuracy, error, and AUC
+accuracy <- round(Accuracy(pred_df$spam, test_spam$spam), 2)
+error_rate <- 1 - accuracy
+pred <- revalue(test_prediction, c("no" = 0, "yes" = 1))
+actual <- revalue(test_spam$spam, c("no" = 0, "yes" = 1))
+AUC <- round(AUC(pred, actual), 2)
+
+# Reporting
+print(paste0("Accuracy is ", round(accuracy, 2)))
+print(paste0("Error rate is ", round(error_rate, 2)))
+print(paste0("AUC is ", round(AUC, 2)))
 ```
 
 
@@ -319,7 +449,15 @@ Load in the spam data. You should not include the following columns in the class
 (8 points) Use bagging to fit an ensemble of 100 trees to the training data. Report the error rate on the testing data. Hint: In R, the package adabag includes methods for bagging and boosting of trees, where command bagging could also be used; other packages exist. In Matlab, look for the TreeBagger functions.
 
 ```{r Question1h}
+# Training the model
+bag <- bagging(formula = spam ~., data = train_spam, mfinal = 100)
 
+# Predicting the test set on the trained model
+bag_pred <- predict(object = bag, newdata = test_spam[-15])
+
+# Finding the error rate
+conf <- confusionMatrix(test_spam$spam, bag_pred$class)
+print(paste0("The error rate for bagging is ", round(1 - conf$overall[["Accuracy"]], 2)))
 ```
 
 
@@ -328,7 +466,15 @@ Load in the spam data. You should not include the following columns in the class
 (8 points) Use boosting to fit an ensemble of 100 trees to the training data. Report the error rate on the testing data. Hint: In R, consider using the adaboost.M1 function (other packages include ada, adaStump, etc.). In Matlab, consider the fitcensemble function.
 
 ```{r Question1i}
+# Training the model
+boost <- boosting(formula = spam ~., data = train_spam, mfinal = 100)
 
+# Predicting the test set on the trained model
+boost_pred <- predict(object = boost,newdata = test_spam[-15])
+
+# Finding the error rate
+conf <- confusionMatrix(test_spam$spam, boost_pred$class)
+print(paste0("The error rate for bagging is ", round(1 - conf$overall[["Accuracy"]], 2)))
 ```
 
 
@@ -342,8 +488,23 @@ Fruit - Naive Bayes Classification Consider the fruit data set, fruit.txt. You w
 
 (5 points) Split the data into training and testing data using a 75/25 split.
 
-```{r Question2a}
+```{r Question2a, error=FALSE}
+# Reading the dataset
+fruit_dataset <- read_csv("data/fruit.txt")
+names(fruit_dataset) <- c("Type", "Weight", "Height", "Width")
 
+# Checking for NA values in the data
+sapply(fruit_dataset, function(x) sum(is.na(x)))
+
+# Setting the seed
+set.seed(123)
+
+# Random Split index variable
+split <- sample.split(Y = fruit_dataset$Type, SplitRatio = 75/100)
+
+# Preparing Train and Test
+train_fruit <- subset(x = fruit_dataset, split == TRUE)
+test_fruit <- subset(x = fruit_dataset, split == FALSE)
 ```
 
 
@@ -370,7 +531,8 @@ Fruit - Naive Bayes Classification Consider the fruit data set, fruit.txt. You w
 (2 points) Confirm the results above using a Naive Bayes classifier available a function or package.
 
 ```{r Question2d}
-
+nb_train <- naiveBayes(formula = Type ~ ., data = train_fruit, laplace = 1)
+nb_pred <- predict(nb_train, test_fruit, type = "raw")
 ```
 
 
@@ -402,7 +564,7 @@ You will be using data from the Presidential State of the Union Addresses availa
 
 #### Question 3a
 
-(4 points) Load the addresses. You will need to create a vector listing the party affliation of each president to match their speech, you may use the le party.txt to help with this classification.
+(4 points) Load the addresses. You will need to create a vector listing the party affliation of each president to match their speech, you may use the file party.txt to help with this classification.
 
 ```{r Question3a}
 

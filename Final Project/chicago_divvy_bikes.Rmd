@@ -118,7 +118,7 @@ table(divvy$Season)
 
 
 
-```{r Verifying ffor missing values}
+```{r Verifying for missing values}
 sapply(divvy, function(x) sum(is.na(x)))
 ```
 
