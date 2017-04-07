@@ -515,8 +515,7 @@ test_fruit <- subset(x = fruit_dataset, split == FALSE)
 
 ```{r Question2b}
 nb_fit <- naiveBayes(formula = as.factor(Type) ~ ., data = train_fruit, laplace = 1)
-nb_pred <- predict(nb_fit, test_fruit, type = "raw")
-nb_pred
+nb_fit
 ```
 
 
@@ -525,11 +524,7 @@ nb_pred
 (12 points) Report the predicted class on the test samples using the estimated parameters. Do these calculation using code/functions that you create and the probabilities estimated in part (b); do not use a supplied function/package in R, Matlab, or Python.
 
 ```{r Question2c}
-pred <- c()
-for(i in 1:nrow(nb_pred)) {
-    pred <- c(pred, unique(which.max(nb_pred[i, ])))
-}
-pred
+# Raghav
 ```
 
 
@@ -554,12 +549,11 @@ set.seed(294)
 k_fold <- 10
 
 # Creating the folds variable in the data frame
-# music$folds <- createFolds(music$Top10, k = n_fold, list = FALSE)
-cv_index_list <- createFolds(train_fruit$Type, k = k_fold, list = TRUE, returnTrain = FALSE)
+cv_index_list <- createFolds(fruit_dataset$Type, k = k_fold, list = TRUE, returnTrain = FALSE)
 
 # Checking the class label proportions
 for(i in 1:k_fold) {
-    fold <- train_fruit$Type[cv_index_list[[i]]]
+    fold <- fruit_dataset$Type[cv_index_list[[i]]]
     fold_length <- length(fold)
     class1_prop <- round(length(fold[fold == 1]) / fold_length, 3)
     class2_prop <- round(length(fold[fold == 2]) /  fold_length, 3)
@@ -579,8 +573,8 @@ total_AUC <- c()
 # Accuracy, error, AUC are rounded off to two decimal points
 naiveBayesModel <- function() {
     for(fold in 1:k_fold) {
-        train_set <- train_fruit[-cv_index_list[[fold]], ] 
-        test_set <- train_fruit[cv_index_list[[fold]], ] 
+        train_set <- fruit_dataset[-cv_index_list[[fold]], ] 
+        test_set <- fruit_dataset[cv_index_list[[fold]], ] 
         
         # Fitting the Naive bayes model
         nb_fit <- naiveBayes(as.factor(Type) ~ ., data = train_set, laplace = 1)
@@ -588,9 +582,9 @@ naiveBayesModel <- function() {
         # Calculating Accuracy. Error, AUC
         test_prediction <- predict(nb_fit, test_set, type = "class")
         
-        accuracy <- round(Accuracy(test_prediction, test_fruit$Type), 2)
+        accuracy <- round(Accuracy(test_prediction, test_set$Type), 2)
         error_rate <- 1 - accuracy
-        AUC <- round(AUC(test_prediction, test_fruit$Type), 2)
+        AUC <- round(AUC(test_prediction, test_set$Type), 2)
         total_acc <- c(total_acc, accuracy)
         total_error_rate <- c(total_error_rate, error_rate)
         total_AUC <- c(total_AUC, AUC)
@@ -637,12 +631,26 @@ speech_corpus <- Corpus(speeches, readerControl = list(language="en", stopwords=
 
 # Read the party.txt file
 party_df <- read.csv("data/sotu/party.txt", header = FALSE, col.names = c("colparty", "colpresident", "colyear"))
+# Subset the party dataframe
+train_party <- subset(party_df, !(party_df$colyear %in% c(2017, 2014, 2006, 1995, 1962)))
+test_party <- subset(party_df, party_df$colyear %in% c(2017, 2014, 2006, 1995, 1962))
 ```
 
 
 #### Question 3b
 
 (6 points) Remove stopwords from consideration for the method. The stopwords are available at stopwords.txt.
+
+
+```{r Question3b}
+# Loading the stopwords.txt
+stopwords <- read.csv("data/sotu/stopwords.txt", header = FALSE, col.names = c("words"))
+
+# Removing Stopword from the considerations
+corpus_after_stopwords <- tm_map(speech_corpus, removeWords, stopwords$words)
+```
+
+#### Question 3c
 
 Predict the party affliations (Democrat / Republican) for the following speeches:
 
@@ -654,13 +662,12 @@ Predict the party affliations (Democrat / Republican) for the following speeches
 
 The training set will be the remaining speeches that can be associated with the Democratic or Republican presidents (note, you will not need all the addresses, but they were included here for completeness of the data). You will need to complete the following steps:
 
-```{r Question3b}
-# Loading the stopwords.txt
-stopwords <- read.csv("data/sotu/stopwords.txt", header = FALSE, col.names = c("words"))
+#### Question 3ci
 
-# Removing Stopword from the considerations
-corpus_after_stopwords <- tm_map(speech_corpus, removeWords, stopwords$words)
+(10 points) Create a term-document matrix, TD for this set of speeches.
 
+
+```{r Question3ci}
 # Preparing Document Matrix
 dtm = DocumentTermMatrix(corpus_after_stopwords, control = list(tolower = TRUE,
                                                                 removePunctuation = TRUE, 
@@ -672,25 +679,9 @@ file_num <- substring(doc_name, 2, nchar(doc_name) - 4)
 DT <- DT[order(as.numeric(file_num)), ]
 
 #Binding the party details to the Corpus matrix
-DT <- cbind(DT, colparty = party_df$colparty, colpresident = party_df$colpresident, 
-            colyear = party_df$colyear)
+DT <- cbind(DT, colparty = party_df$colparty, colyear = party_df$colyear)
 
-
-# Subset the party dataframe
-train_party <- subset(party_df, !(party_df$colyear %in% c(2017, 2014, 2006, 1995, 1962)))
-test_party <- subset(party_df, party_df$colyear %in% c(2017, 2014, 2006, 1995, 1962))
-
-
-```
-
-
-#### Question 3ci
-
-(10 points) Create a term-document matrix, TD for this set of speeches.
-
-
-```{r Question3ci}
-
+DT[1:6, c(ncol(DT)-1, ncol(DT))]
 ```
 
 
