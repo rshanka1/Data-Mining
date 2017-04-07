@@ -681,7 +681,12 @@ DT <- DT[order(as.numeric(file_num)), ]
 #Binding the party details to the Corpus matrix
 DT <- cbind(DT, colparty = party_df$colparty, colyear = party_df$colyear)
 
-DT[1:6, c(ncol(DT)-1, ncol(DT))]
+DTyear
+train_DT <- subset(DT, !(DT[, ncol(DT)] %in% c(2017, 2014, 2006, 1995, 1962)))
+test_DT <- subset(DT, DT[, ncol(DT)] %in% c(2017, 2014, 2006, 1995, 1962))
+
+train_DT[, ncol(DT)]
+test_DT[, ncol(DT)]
 ```
 
 
