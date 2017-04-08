@@ -491,8 +491,11 @@ Fruit - Naive Bayes Classification Consider the fruit data set, fruit.txt. You w
 
 ```{r Question2a, error=FALSE}
 # Reading the dataset
-fruit_dataset <- read_csv("data/fruit.txt")
+fruit_dataset <- read.csv("data/fruit.txt", header = FALSE)
 names(fruit_dataset) <- c("Type", "Weight", "Height", "Width")
+
+# For laplace we need factors
+fruit_dataset <- as.data.frame(lapply(fruit_dataset, factor))
 
 # Checking for NA values in the data
 sapply(fruit_dataset, function(x) sum(is.na(x)))
@@ -514,26 +517,25 @@ test_fruit <- subset(x = fruit_dataset, split == FALSE)
 (5 points) Estimate the probabilities needed for Naive Bayes classification using Laplace smoothing, e.g., P(Xi = j j Y = yk) = #(Xi=j;Y =yk)+1 / #(Y =yk)+jdomain(Xi)j
 
 ```{r Question2b}
-# nb_fit <- naiveBayes(formula = as.factor(Type) ~ ., data = train_fruit, laplace = 1)
-# nb_fit
-
 # Naive bayes classifcation function with laplace smoothing
 
 nbClassifier <- function(response, predictors, laplace = 0) {
     
     # Intailize variables
     response_name <- deparse(substitute(response))
-    response <- as.factor(response)
     predictors <- as.data.frame(predictors)
     
-    ## Create tables
-    priorProb <- table(response)
+    # Create Prior probablities
+    # Percentage of each levels in response
+    priorProb <- table(response) / length(response)
+    
+    # Conditional probablity using laplace formula
     condProb <- lapply(predictors, function(x) {
         tab <- table(response, x)
         (tab + laplace) / (rowSums(tab) + laplace * nlevels(x))
     })
     
-    ## Fix dimname names for conditional and prior probs
+    # Fix dimname names for conditional and prior probs
     for (i in 1:length(condProb)) {
         names(dimnames(condProb[[i]])) <- c(response_name, colnames(predictors)[i])
     }
@@ -548,7 +550,7 @@ nbClassifier <- function(response, predictors, laplace = 0) {
     list(priorProb = priorProb, condProb = condProb, levels = levels)
 }
 
-nbClassifier(train_fruit$Type, train_fruit[,-1], 1)
+nb_fit <- nbClassifier(train_fruit$Type, train_fruit[,-1], 1)
 ```
 
 
@@ -557,7 +559,56 @@ nbClassifier(train_fruit$Type, train_fruit[,-1], 1)
 (12 points) Report the predicted class on the test samples using the estimated parameters. Do these calculation using code/functions that you create and the probabilities estimated in part (b); do not use a supplied function/package in R, Matlab, or Python.
 
 ```{r Question2c}
-# Raghav
+predictNaiveBayes <- function(object,
+                               newdata,
+                               type = c("class", "raw"),
+                               threshold = 0.001,
+                               eps = 0,
+                               ...) {
+    type <- match.arg(type)
+    newdata <- as.data.frame(newdata)
+    attribs <- match(names(object$condProb), names(newdata))
+    isnumeric <- sapply(newdata, is.numeric)
+    islogical <- sapply(newdata, is.logical)
+    newdata <- data.matrix(newdata)
+    
+    L <- sapply(1:nrow(newdata), function(i) {
+        ndata <- newdata[i, ]
+        L <- log(object$priorProb) + apply(log(sapply(seq_along(attribs),
+            function(v) {
+                nd <- ndata[attribs[v]]
+                if (is.na(nd)) rep(1, length(object$priorProb)) else {
+                  prob <- if (isnumeric[attribs[v]]) {
+                    msd <- object$condProb[[v]]
+                    msd[, 2][msd[, 2] <= eps] <- threshold
+                    dnorm(nd, msd[, 1], msd[, 2])
+                  } else object$condProb[[v]][, nd + islogical[attribs[v]]]
+                  prob[prob <= eps] <- threshold
+                  prob
+                }
+            })), 1, sum)
+        if (type == "class")
+            L
+        else {
+            ## Numerically unstable:
+            ##            L <- exp(L)
+            ##            L / sum(L)
+            ## instead, we use:
+            sapply(L, function(lp) {
+                1/sum(exp(L - lp))
+            })
+        }
+    })
+    if (type == "class") {
+        if (is.logical(object$levels))
+            L[2,] > L[1,]
+        else
+            factor(object$levels[apply(L, 2, which.max)], levels = object$levels)
+    } else t(L)
+}
+
+predictNaiveBayes(nb_fit, test_fruit, type = "class")
+
 ```
 
 
@@ -566,7 +617,8 @@ nbClassifier(train_fruit$Type, train_fruit[,-1], 1)
 (2 points) Confirm the results above using a Naive Bayes classifier available a function or package.
 
 ```{r Question2d}
-predict(nb_fit, test_fruit, type = "class")
+nb_model_fit <- naiveBayes(Type ~ ., train_fruit, laplace = 1)
+predict(nb_model_fit, test_fruit, type = "class")
 ```
 
 
