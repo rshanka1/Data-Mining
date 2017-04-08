@@ -514,8 +514,41 @@ test_fruit <- subset(x = fruit_dataset, split == FALSE)
 (5 points) Estimate the probabilities needed for Naive Bayes classification using Laplace smoothing, e.g., P(Xi = j j Y = yk) = #(Xi=j;Y =yk)+1 / #(Y =yk)+jdomain(Xi)j
 
 ```{r Question2b}
-nb_fit <- naiveBayes(formula = as.factor(Type) ~ ., data = train_fruit, laplace = 1)
-nb_fit
+# nb_fit <- naiveBayes(formula = as.factor(Type) ~ ., data = train_fruit, laplace = 1)
+# nb_fit
+
+# Naive bayes classifcation function with laplace smoothing
+
+nbClassifier <- function(response, predictors, laplace = 0) {
+    
+    # Intailize variables
+    response_name <- deparse(substitute(response))
+    response <- as.factor(response)
+    predictors <- as.data.frame(predictors)
+    
+    ## Create tables
+    priorProb <- table(response)
+    condProb <- lapply(predictors, function(x) {
+        tab <- table(response, x)
+        (tab + laplace) / (rowSums(tab) + laplace * nlevels(x))
+    })
+    
+    ## Fix dimname names for conditional and prior probs
+    for (i in 1:length(condProb)) {
+        names(dimnames(condProb[[i]])) <- c(response_name, colnames(predictors)[i])
+    }
+    names(dimnames(priorProb)) <- response_name
+    
+    # Class Labels for the response
+    if(is.logical(response)) 
+        levels <- c(FALSE, TRUE) 
+    else 
+        levels <- levels(response)
+    
+    list(priorProb = priorProb, condProb = condProb, levels = levels)
+}
+
+nbClassifier(train_fruit$Type, train_fruit[,-1], 1)
 ```
 
 
