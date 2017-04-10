@@ -34,6 +34,8 @@ installNewPackage("plyr")
 installNewPackage("adabag")
 installNewPackage("readr")
 installNewPackage("tm")
+installNewPackage("dplyr")
+
 library(caret)
 library(randomForest)
 library(rpart)
@@ -47,6 +49,7 @@ library(plyr)
 library(adabag)
 library(readr)
 library(tm)
+library(dplyr)
 ```
 
 
@@ -144,11 +147,10 @@ for(fold in 1:k_fold) {
 report <- data.frame(Fold = c(1:10), Accuracy = total_acc, Error_rate = total_error_rate,
                      AUC = total_AUC)
 print(report)
-cat("==========================================================\n")
+
 print(paste("Overall accuracy is", round(sum(total_acc) / k_fold, 2), sep = " "))
 print(paste("Overall error is", round(sum(total_error_rate) / k_fold, 2), sep =" "))
 print(paste("Overall area under the curve(AUC) is", round(sum(total_AUC) / k_fold, 2), sep = " "))
-cat("\n==========================================================\n")
 ```
 
 
@@ -193,7 +195,7 @@ for(cost in cost_values) {
         total_AUC <- c(total_AUC, AUC)
     }
     total_acc_list <- c(total_acc_list, sum(total_acc) / k_fold)
-    total_error_rate_list <- c(total_acc_list, sum(total_error_rate) / k_fold)
+    total_error_rate_list <- c(total_error_rate_list, sum(total_error_rate) / k_fold)
     total_AUC_list <- c(total_AUC_list, sum(total_AUC) / k_fold)
     report <- data.frame(Fold = c(1:10), Accuracy = total_acc, Error_rate = total_error_rate,
                          AUC = total_AUC)
@@ -211,12 +213,10 @@ best_acc <- total_acc_list[max_acc_index]
 best_error_rate <- total_error_rate_list[max_acc_index]
 best_AUC <- total_AUC_list[max_acc_index]
 
-cat("==========================================================\n")
 print(paste("Best model is one with cost as", best_cost, sep = " "))
 print(paste("Best model accuracy is", round(best_acc, 2), sep = " "))
 print(paste("Best model error is", round(best_error_rate, 2), sep =" "))
 print(paste("Best model area under the curve(AUC) is", round(best_AUC, 2), sep = " "))
-cat("\n==========================================================\n")
 ```
 
 
@@ -224,7 +224,6 @@ cat("\n==========================================================\n")
 
 (5) points (bonus)) Re-run the analysis in (c) using a nested cross-validation to determine the best value of k and to determine the best parameters of the SVM.
 
-**Still SVM needs to be done**
 ```{r question8i}
 # Setting the k values for KNN
 k_values <- c(1, 3, 5, 7, 9)
@@ -257,6 +256,56 @@ for(k in k_values) {
 
 }
 print(paste("The best value of k is", max_k, sep = " "))
+
+
+# Intializing the cost variables
+cost_values <- c(0.01, 0.1, 1, 10, 100)
+total_acc_list <- c()
+total_error_rate_list <- c()
+total_AUC_list <- c()
+
+# Running the Support Vector machine for cost values
+# 0.01, 0.1, 1, 10, 10, 100 with 10 - fold cross validation
+# Accuracy, error, AUC are rounded off to two decimal points
+for(cost in cost_values) {
+
+    # Intailize variables
+    total_acc <- c()
+    total_error_rate <- c()
+    total_AUC <- c()
+
+    for(fold in 1:k_fold) {
+        train_set <- music[-cv_index_list[[fold]], ]
+        test_set <- music[cv_index_list[[fold]], ]
+
+        # Fitting the model
+        svm_fit <- svm(as.factor(Top10) ~ ., data = train_set, kernel = "radial", cost = cost)
+
+        # Calculating Accuracy. Error, AUC
+        test_prediction <- predict(svm_fit, test_set, type = 'class')
+        accuracy <- round(Accuracy(test_prediction, test_set$Top10), 2)
+        error_rate <- 1 - accuracy
+        AUC <- round(AUC(test_prediction, test_set$Top10), 2)
+        total_acc <- c(total_acc, accuracy)
+        total_error_rate <- c(total_error_rate, error_rate)
+        total_AUC <- c(total_AUC, AUC)
+    }
+    total_acc_list <- c(total_acc_list, sum(total_acc) / k_fold)
+    total_error_rate_list <- c(total_error_rate_list, sum(total_error_rate) / k_fold)
+    total_AUC_list <- c(total_AUC_list, sum(total_AUC) / k_fold)
+}
+
+max_acc_index <- which.max(total_acc_list)
+best_cost <- cost_values[max_acc_index]
+best_acc <- total_acc_list[max_acc_index]
+best_error_rate <- total_error_rate_list[max_acc_index]
+best_AUC <- total_AUC_list[max_acc_index]
+
+
+print(paste("Best model is one with cost as", best_cost, sep = " "))
+print(paste("Best model accuracy is", round(best_acc, 2), sep = " "))
+print(paste("Best model error is", round(best_error_rate, 2), sep =" "))
+print(paste("Best model area under the curve(AUC) is", round(best_AUC, 2), sep = " "))
 ```
 
 
@@ -321,7 +370,7 @@ report <- function(test, pred) {
     # ROC Curve
     prediction <- prediction(as.numeric(nb_pred), as.numeric(test$spam))
     roc_perf <- performance(prediction, "tpr", "fpr")
-    print(paste0("AUC value is", round(auc(as.numeric(test$spam), as.numeric(pred)), 2)))
+    print(paste0("AUC value is ", round(auc(as.numeric(test$spam), as.numeric(pred)), 2)))
     plot(roc_perf, xlab="False positive rate", ylab="True positive rate")
     
 }
@@ -405,12 +454,10 @@ best_acc <- total_acc[max_acc_index]
 best_error_rate <- total_error_rate[max_acc_index]
 best_AUC <- total_AUC[max_acc_index]
 
-cat("==========================================================\n")
 print(paste("Best model is one with cost as", best_cost, sep = " "))
 print(paste("Best model accuracy is", round(best_acc, 2), sep = " "))
 print(paste("Best model error is", round(best_error_rate, 2), sep =" "))
 print(paste("Best model area under the curve(AUC) is", round(best_AUC, 2), sep = " "))
-cat("\n==========================================================\n")
 
 # Taking away the best model(cost is 1)
 svm_fit <- svm(as.factor(spam) ~ ., data = train_spam, kernel = "radial", cost = 1)
@@ -429,7 +476,7 @@ pred_df_numeric <- data.frame(revalue(nb_pred, c("no" = 0, "yes" = 1)),
                               revalue(dtree_pred, c("no" = 0, "yes" = 1)),
                               revalue(svm_pred, c("no" = 0, "yes" = 1)))
 spam <- rowMeans(apply(pred_df_numeric, 2, function(x) as.numeric(x)))
-pred_df$spam <- ifelse(mask > .5, "yes", "no")
+pred_df$spam <- ifelse(spam > .5, "yes", "no")
 
 # Calculating accuracy, error, and AUC
 accuracy <- round(Accuracy(pred_df$spam, test_spam$spam), 2)
@@ -551,6 +598,7 @@ nbClassifier <- function(response, predictors, laplace = 0) {
 }
 
 nb_fit <- nbClassifier(train_fruit$Type, train_fruit[,-1], 1)
+nb_fit
 ```
 
 
@@ -559,55 +607,49 @@ nb_fit <- nbClassifier(train_fruit$Type, train_fruit[,-1], 1)
 (12 points) Report the predicted class on the test samples using the estimated parameters. Do these calculation using code/functions that you create and the probabilities estimated in part (b); do not use a supplied function/package in R, Matlab, or Python.
 
 ```{r Question2c}
-predictNaiveBayes <- function(object,
-                               newdata,
-                               type = c("class", "raw"),
-                               threshold = 0.001,
-                               eps = 0,
-                               ...) {
-    type <- match.arg(type)
-    newdata <- as.data.frame(newdata)
-    attribs <- match(names(object$condProb), names(newdata))
-    isnumeric <- sapply(newdata, is.numeric)
-    islogical <- sapply(newdata, is.logical)
-    newdata <- data.matrix(newdata)
+# Checking whether the test varaibles are numic or logical 
+isnumeric <- sapply(test_fruit, is.numeric)
+islogical <- sapply(test_fruit, is.logical)
     
-    L <- sapply(1:nrow(newdata), function(i) {
-        ndata <- newdata[i, ]
-        L <- log(object$priorProb) + apply(log(sapply(seq_along(attribs),
-            function(v) {
-                nd <- ndata[attribs[v]]
-                if (is.na(nd)) rep(1, length(object$priorProb)) else {
-                  prob <- if (isnumeric[attribs[v]]) {
-                    msd <- object$condProb[[v]]
-                    msd[, 2][msd[, 2] <= eps] <- threshold
-                    dnorm(nd, msd[, 1], msd[, 2])
-                  } else object$condProb[[v]][, nd + islogical[attribs[v]]]
-                  prob[prob <= eps] <- threshold
-                  prob
-                }
-            })), 1, sum)
-        if (type == "class")
-            L
-        else {
-            ## Numerically unstable:
-            ##            L <- exp(L)
-            ##            L / sum(L)
-            ## instead, we use:
-            sapply(L, function(lp) {
-                1/sum(exp(L - lp))
-            })
+# Probality computation for the test set
+probCompute <- function(v, ndata, predictors, model) {
+            
+    nd <- ndata[predictors[v]]
+    if(is.na(nd)) {
+        rep(1, length(model$priorProb)) 
+    }
+    else {
+        prob <- if (isnumeric[predictors[v]]) {
+            predCondProb <- model$condProb[[v]]
+            print(msd)
+            predCondProb[, 2][predCondProb[, 2] <= 0] <- 0.001
+            dnorm(nd, msd[, 1], msd[, 2])
+        } else {
+            model$condProb[[v]][, nd + islogical[predictors[v]]]
         }
-    })
-    if (type == "class") {
-        if (is.logical(object$levels))
-            L[2,] > L[1,]
-        else
-            factor(object$levels[apply(L, 2, which.max)], levels = object$levels)
-    } else t(L)
+        prob[prob <= 0] <- 0.001
+        prob
+    }
 }
 
-predictNaiveBayes(nb_fit, test_fruit, type = "class")
+predictNaiveBayes <- function(model, test) {
+    
+    predictors <- match(names(model$condProb), names(test))
+    test <- data.matrix(test)
+    
+    resultProb <- sapply(1:nrow(test), function(i) {
+        ndata <- test[i, ]
+        log(model$priorProb) + apply(log(sapply(seq(predictors), function(v) probCompute(v, ndata, predictors, model))), 1, sum)
+    })
+    
+    if (is.logical(model$levels))
+        resultProb[2,] > resultProb[1,]
+    else
+        factor(model$levels[apply(resultProb, 2, which.max)], levels = model$levels)
+    
+}
+
+predictNaiveBayes(nb_fit, test_fruit)
 
 ```
 
@@ -766,12 +808,8 @@ DT <- DT[order(as.numeric(file_num)), ]
 #Binding the party details to the Corpus matrix
 DT <- cbind(DT, colparty = party_df$colparty, colyear = party_df$colyear)
 
-DTyear
 train_DT <- subset(DT, !(DT[, ncol(DT)] %in% c(2017, 2014, 2006, 1995, 1962)))
 test_DT <- subset(DT, DT[, ncol(DT)] %in% c(2017, 2014, 2006, 1995, 1962))
-
-train_DT[, ncol(DT)]
-test_DT[, ncol(DT)]
 ```
 
 
@@ -781,6 +819,62 @@ test_DT[, ncol(DT)]
 
 
 ```{r Question3cii}
+# Preprocessing
+train_DF <- data.frame(train_DT)
+party_train <- subset(party_df, !(party_df[, ncol(party_df)] %in% c(2017, 2014, 2006, 1995, 1962)))
+train_DF <- cbind(party_train$colparty,train_DF)
+
+train_Dem <- train_DF[train_DF$`party_train$colparty`=='d',]
+train_Dem$`party_train$colparty` <- NULL
+
+train_Rep <- train_DF[train_DF$`party_train$colparty`=='r',]
+train_Rep$`party_train$colparty` <- NULL
+
+# Prior Probabilities of each class
+p_dem <- nrow(train_Dem)/nrow(train_DF)
+p_rep <- nrow(train_Rep)/nrow(train_DF)
+
+# Bernoulli Calculation
+train_bern_dem <- train_Dem
+train_bern_rep <- train_Rep
+train_bern_dem[train_bern_dem != 0] <- 1
+train_bern_rep[train_bern_rep != 0] <- 1
+prob_bern_dem <- data.frame((colSums(train_bern_dem)+1)/(nrow(train_bern_dem)+2))
+prob_bern_rep <- data.frame((colSums(train_bern_rep)+1)/(nrow(train_bern_rep)+2))
+
+# Changing test data matrix to data frame
+test_df <- data.frame(test_DT)
+test_df <- data.frame(t(test_df))
+
+# Predicting the party affiliation using bernoulli
+prob_speeches_bern <- function(x){
+    a_pred_dem <- cbind(prob_bern_dem,test_df[,x])
+    colnames(a_pred_dem) <- c('probability','occurance')
+    a_pred_dem$probability <- log(a_pred_dem$probability)
+    a_pred_dem <- mutate(.data = a_pred_dem,res = a_pred_dem$probability*a_pred_dem$occurance)
+    cond_dem <- log(p_dem)+sum(a_pred_dem$res)
+    
+    a_pred_rep <- cbind(prob_bern_rep,test_df[,x])
+    colnames(a_pred_rep) <- c('probability','occurance')
+    a_pred_rep$probability <- log(a_pred_rep$probability)
+    a_pred_rep <- mutate(.data = a_pred_rep,res = a_pred_rep$probability*a_pred_rep$occurance)
+    cond_rep <- log(p_rep)+sum(a_pred_rep$res)
+    
+    return(c(cond_dem,cond_rep))
+}
+
+kennedy <- prob_speeches_bern(1)
+kennedy <- c(kennedy, ifelse(kennedy[1] > kennedy[2], "D", "R"))
+clinton <- prob_speeches_bern(2)
+clinton <- c(clinton, ifelse(clinton[1] > clinton[2], "D", "R"))
+bush <- prob_speeches_bern(3)
+bush <- c(bush, ifelse(bush[1] > bush[2], "D", "R"))
+obama <- prob_speeches_bern(4)
+obama <- c(obama, ifelse(obama[1] > obama[2], "D", "R"))
+trump <- prob_speeches_bern(5)
+trump <- c(trump, ifelse(trump[1] > trump[2], "D", "R"))
+
+data.frame(party = c("D", "R", "Prediction"), kennedy, clinton, bush, obama, trump)
 
 ```
 
@@ -792,7 +886,39 @@ test_DT[, ncol(DT)]
 Hint: A strong suggestion for this question is to first create and test your code on a small document set, e.g., the example in the IR-book. Once you have that working correctly, then run on the SOTU addresses.
 
 ```{r Question3ciii}
+# Multinomial
+prob_multi_dem <- data.frame((colSums(train_Dem)+ 1) / (sum(train_Dem)+ncol(train_Dem)))
+prob_multi_rep <- data.frame((colSums(train_Rep)+ 1) / (sum(train_Rep)+ncol(train_Rep)))
 
+prob_speeches_multi <- function(x){
+    
+    a_pred_dem <- cbind(prob_multi_dem,test_df[,x])
+    colnames(a_pred_dem) <- c('probability','occurance')
+    a_pred_dem$probability <- log(a_pred_dem$probability)
+    a_pred_dem <- mutate(.data = a_pred_dem,res = a_pred_dem$probability*a_pred_dem$occurance)
+    cond_dem <- log(p_dem)+sum(a_pred_dem$res)
+    
+    a_pred_rep <- cbind(prob_multi_rep,test_df[,x])
+    colnames(a_pred_rep) <- c('probability','occurance')
+    a_pred_rep$probability <- log(a_pred_rep$probability)
+    a_pred_rep <- mutate(.data = a_pred_rep,res = a_pred_rep$probability*a_pred_rep$occurance)
+    cond_rep <- log(p_rep)+sum(a_pred_rep$res)
+    
+    return(c(cond_dem,cond_rep))
+}
+
+kennedy <- prob_speeches_multi(1)
+kennedy <- c(kennedy, ifelse(kennedy[1] > kennedy[2], "D", "R"))
+clinton <- prob_speeches_multi(2)
+clinton <- c(clinton, ifelse(clinton[1] > clinton[2], "D", "R"))
+bush <- prob_speeches_multi(3)
+bush <- c(bush, ifelse(bush[1] > bush[2], "D", "R"))
+obama <- prob_speeches_multi(4)
+obama <- c(obama, ifelse(obama[1] > obama[2], "D", "R"))
+trump <- prob_speeches_multi(5)
+trump <- c(trump, ifelse(trump[1] > trump[2], "D", "R"))
+
+data.frame(party = c("D", "R", "Prediction"), kennedy, clinton, bush, obama, trump)
 ```
 
 
@@ -801,8 +927,56 @@ Hint: A strong suggestion for this question is to first create and test your cod
 (4 points (bonus)) Repeat the prediction of the party affliation for the five speeches listed
 using only the other speeches since 1913 as the training data.
 
-```{r Question3d}
+```{r Question3d bernoulli}
+# Preprocessing
+train_DF <- data.frame(train_DT)
+party_train <- subset(party_df, !(party_df[, ncol(party_df)] %in% c(2017, 2014, 2006, 1995, 1962)))
+train_DF <- cbind(party_train$colparty,train_DF)
 
+train_Dem <- train_DF[train_DF$`party_train$colparty`=='d',]
+train_Dem$`party_train$colparty` <- NULL
+
+train_Rep <- train_DF[train_DF$`party_train$colparty`=='r',]
+train_Rep$`party_train$colparty` <- NULL
+
+# Prior Probabilities of each class
+p_dem <- nrow(train_Dem)/nrow(train_DF)
+p_rep <- nrow(train_Rep)/nrow(train_DF)
+
+# Bernoulli Calculation
+train_bern_dem <- train_Dem
+train_bern_rep <- train_Rep
+train_bern_dem[train_bern_dem != 0] <- 1
+train_bern_rep[train_bern_rep != 0] <- 1
+prob_bern_dem <- data.frame((colSums(train_bern_dem)+1)/(nrow(train_bern_dem)+2))
+prob_bern_rep <- data.frame((colSums(train_bern_rep)+1)/(nrow(train_bern_rep)+2))
+
+# Changing test data matrix to data frame
+test_df <- data.frame(test_DT)
+test_df <- data.frame(t(test_df))
+
+# Predicting the party affiliation using bernoulli
+prob_speeches_bern <- function(x){
+    a_pred_dem <- cbind(prob_bern_dem,test_df[,x])
+    colnames(a_pred_dem) <- c('probability','occurance')
+    a_pred_dem$probability <- log(a_pred_dem$probability)
+    a_pred_dem <- mutate(.data = a_pred_dem,res = a_pred_dem$probability*a_pred_dem$occurance)
+    cond_dem <- log(p_dem)+sum(a_pred_dem$res)
+    
+    a_pred_rep <- cbind(prob_bern_rep,test_df[,x])
+    colnames(a_pred_rep) <- c('probability','occurance')
+    a_pred_rep$probability <- log(a_pred_rep$probability)
+    a_pred_rep <- mutate(.data = a_pred_rep,res = a_pred_rep$probability*a_pred_rep$occurance)
+    cond_rep <- log(p_rep)+sum(a_pred_rep$res)
+    
+    return(c(cond_dem,cond_rep))
+}
+
+kennedy <- prob_speeches_bern(1)
+clinton <- prob_speeches_bern(2)
+bush <- prob_speeches_bern(3)
+obama <- prob_speeches_bern(4)
+trump <- prob_speeches_bern(5)
 ```
 
 
@@ -815,7 +989,7 @@ using only the other speeches since 1913 as the training data.
 
 
 ```{r Question4}
-
+plot(sort(freq, decreasing = T),col="blue",main="Word TF-IDF frequencies", xlab="TF-IDF-based rank", ylab = "TF-IDF")
 ```
 
 

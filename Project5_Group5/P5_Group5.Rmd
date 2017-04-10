@@ -1,0 +1,141 @@
+---
+title: "Project5 - Group5"
+author: "Nishanth Gandhidoss, Raghavendran Shankar"
+date: "8 April 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Part 1: Answer by Hand
+
+For the firrst four problems you do not need to use R/Matlab/Python, rather this is showing you understand definitions, concepts, and how the algorithms work.
+
+#### Question 1
+
+**Text Mining**
+
+Consider the following documents:
+
+Doc 1: cat, cat, bat, rat, fat, cat
+Doc 2: mat, pat, bat, bat, bat, rat
+Doc 3: fat, rat, mat, pat, sat, cat
+
+#### Question 1a
+
+(4 points) Construct the Term Document Matrix
+
+
+#### Question 1b
+
+(6 points) Construct the TF-IDF Matrix
+
+
+#### Question 1c
+
+(2 points) What is the term-document pair(s) with the highest TF-IDF value.
+
+
+
+#### Question 2
+
+### Recommendation Systems
+
+Consider the following ratings matrix:
+
+|   | Avengers  | Iron Man 3  |  The Dark Knight Rises | Captain America 2  |
+|---|---|---|---|---|
+| Ann  | 3.5  | 3  | 5  | 3.5   |
+| Ben  |  5 |  2 | 3  | 3  |
+| Chris  | 4  | 2.5  | 4  | 4  |
+| Dana  | ??  | 3  | 4.5  | 2.5  |
+
+#### Question 2a
+
+(6 points) Fill in the missing rating for Dana using user-based collaborative filtering with k = 2 nearest neighbors using Manhattan distance to compare users. Indicate which other users are closest to Dana and the resulting rating calculated (use simple averaging of nearest neighbors).
+
+
+#### Question 2b
+
+Fill in the missing rating using item-based collaborative filtering with k = 2 nearest neighbors using Manhattan distance to compare items. Indicate which other items are closest to Avengers and the resulting rating calculated (use simple averaging of nearest neighbors).
+
+
+#### Question 2c
+
+(4 points (bonus)) Calculate the missing rating same as above, but incorporate the similarity measure (distance measure) into the prediction. Because Manhattan distance was used rather than similarity convert it to a similarity with the following process normalize the distance between min-distance = 0 and max-distance = 3*(5-1) = 12; then subtract this value from 1 to get a similarity score.
+
+
+### Association Analysis I
+
+Given a database of transactions and a min-support = 2,
+
+| Trans.  | Items  |
+|---|---|
+| T1  | I1, I2, I3, I4, I5, I6, I7, I8, I9, I10  |
+| T2  | I1, I2, I3, I4, I5, I6, I7, I8  |
+| T3  | I1, I2, I3, I4, I5  |
+| T4  | I6, I7, I8  |
+| T5  | I100, I101, I102, I103  |
+
+#### Question 3a
+
+(1 point) How many frequent patterns exist?
+
+
+
+#### Question 3b
+
+(3 points) What is the set of frequent closed patterns?
+
+
+#### Question 3c
+
+(2 points) What is the set of frequent max-patterns?
+
+
+#### Question 3d
+
+(4 points) Find an example of an association rule that matches the following pattern with min-support = 2 and min-conf = 70
+
+<center>(I1, I2, I3, I4, IX -> IY )</center>
+
+
+
+#### Question 3e
+
+(8 points) For the association rule I1???? > I6, compute the support, condence, lift, and interest
+
+
+#### Question 4
+
+### Data Mining Book: 6.6
+
+For each algorithm, show the major steps through the algorithm. Also, report at the end the frequent items sets identified.
+
+#### Question 4a
+
+(24 points) For Apriori, present Li and Ci for each level i considered
+
+
+#### Question 4b
+
+(b) (22 points) For FP-growth, present the FP-tree like Fig. 6.7 (p. 258) and present the generated the frequent patterns like Table 6.2 (p. 259) (the conditional FP-trees do not need to be illustrated explicitly).
+
+
+## Part 2: Use Software
+
+For the first four problems you do not need to use R/Matlab/Python, rather this is showing you
+understand definitions, concepts, and how the algorithms work.
+
+#### Question 5
+
+(12 points) Confirm the results above of the Apriori algorithm. For R, the arules package is
+available or Matlab has the Association Rules package available from File Exchange.
+
+```{r Question5}
+
+```
+
+**End of the assignment**
