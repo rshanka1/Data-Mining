@@ -809,6 +809,7 @@ DT <- DT[order(as.numeric(file_num)), ]
 DT <- cbind(DT, colparty = party_df$colparty, colyear = party_df$colyear)
 
 train_DT <- subset(DT, !(DT[, ncol(DT)] %in% c(2017, 2014, 2006, 1995, 1962)))
+train_DTSince1913 <- subset(DT, !(DT[, ncol(DT)] %in% c(2017, 2014, 2006, 1995, 1962)) & DT[, ncol(DT)] > 1912)
 test_DT <- subset(DT, DT[, ncol(DT)] %in% c(2017, 2014, 2006, 1995, 1962))
 ```
 
@@ -907,6 +908,7 @@ prob_speeches_multi <- function(x){
     return(c(cond_dem,cond_rep))
 }
 
+# Calling the predict function
 kennedy <- prob_speeches_multi(1)
 kennedy <- c(kennedy, ifelse(kennedy[1] > kennedy[2], "D", "R"))
 clinton <- prob_speeches_multi(2)
@@ -929,8 +931,9 @@ using only the other speeches since 1913 as the training data.
 
 ```{r Question3d bernoulli}
 # Preprocessing
-train_DF <- data.frame(train_DT)
+train_DF <- data.frame(train_DTSince1913)
 party_train <- subset(party_df, !(party_df[, ncol(party_df)] %in% c(2017, 2014, 2006, 1995, 1962)))
+party_train <-  subset(party_train, party_train[, ncol(party_train)] > 1912)
 train_DF <- cbind(party_train$colparty,train_DF)
 
 train_Dem <- train_DF[train_DF$`party_train$colparty`=='d',]
@@ -955,30 +958,40 @@ prob_bern_rep <- data.frame((colSums(train_bern_rep)+1)/(nrow(train_bern_rep)+2)
 test_df <- data.frame(test_DT)
 test_df <- data.frame(t(test_df))
 
-# Predicting the party affiliation using bernoulli
-prob_speeches_bern <- function(x){
-    a_pred_dem <- cbind(prob_bern_dem,test_df[,x])
-    colnames(a_pred_dem) <- c('probability','occurance')
-    a_pred_dem$probability <- log(a_pred_dem$probability)
-    a_pred_dem <- mutate(.data = a_pred_dem,res = a_pred_dem$probability*a_pred_dem$occurance)
-    cond_dem <- log(p_dem)+sum(a_pred_dem$res)
-    
-    a_pred_rep <- cbind(prob_bern_rep,test_df[,x])
-    colnames(a_pred_rep) <- c('probability','occurance')
-    a_pred_rep$probability <- log(a_pred_rep$probability)
-    a_pred_rep <- mutate(.data = a_pred_rep,res = a_pred_rep$probability*a_pred_rep$occurance)
-    cond_rep <- log(p_rep)+sum(a_pred_rep$res)
-    
-    return(c(cond_dem,cond_rep))
-}
-
+# calling the predict function
 kennedy <- prob_speeches_bern(1)
+kennedy <- c(kennedy, ifelse(kennedy[1] > kennedy[2], "D", "R"))
 clinton <- prob_speeches_bern(2)
+clinton <- c(clinton, ifelse(clinton[1] > clinton[2], "D", "R"))
 bush <- prob_speeches_bern(3)
+bush <- c(bush, ifelse(bush[1] > bush[2], "D", "R"))
 obama <- prob_speeches_bern(4)
+obama <- c(obama, ifelse(obama[1] > obama[2], "D", "R"))
 trump <- prob_speeches_bern(5)
+trump <- c(trump, ifelse(trump[1] > trump[2], "D", "R"))
+
+data.frame(party = c("D", "R", "Prediction"), kennedy, clinton, bush, obama, trump)
 ```
 
+
+```{r Multinomial}
+# Multinomial
+prob_multi_dem <- data.frame((colSums(train_Dem)+ 1) / (sum(train_Dem)+ncol(train_Dem)))
+prob_multi_rep <- data.frame((colSums(train_Rep)+ 1) / (sum(train_Rep)+ncol(train_Rep)))
+
+kennedy <- prob_speeches_multi(1)
+kennedy <- c(kennedy, ifelse(kennedy[1] > kennedy[2], "D", "R"))
+clinton <- prob_speeches_multi(2)
+clinton <- c(clinton, ifelse(clinton[1] > clinton[2], "D", "R"))
+bush <- prob_speeches_multi(3)
+bush <- c(bush, ifelse(bush[1] > bush[2], "D", "R"))
+obama <- prob_speeches_multi(4)
+obama <- c(obama, ifelse(obama[1] > obama[2], "D", "R"))
+trump <- prob_speeches_multi(5)
+trump <- c(trump, ifelse(trump[1] > trump[2], "D", "R"))
+
+data.frame(party = c("D", "R", "Prediction"), kennedy, clinton, bush, obama, trump)
+```
 
 #### Question 4
 
@@ -989,7 +1002,7 @@ trump <- prob_speeches_bern(5)
 
 
 ```{r Question4}
-plot(sort(freq, decreasing = T),col="blue",main="Word TF-IDF frequencies", xlab="TF-IDF-based rank", ylab = "TF-IDF")
+# plot(sort(freq, decreasing = T),col="blue",main="Word TF-IDF frequencies", xlab="TF-IDF-based rank", ylab = "TF-IDF")
 ```
 
 
