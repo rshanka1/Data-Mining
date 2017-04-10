@@ -1002,7 +1002,18 @@ data.frame(party = c("D", "R", "Prediction"), kennedy, clinton, bush, obama, tru
 
 
 ```{r Question4}
-# plot(sort(freq, decreasing = T),col="blue",main="Word TF-IDF frequencies", xlab="TF-IDF-based rank", ylab = "TF-IDF")
+# Term Frequency
+freq = colSums(as.matrix(dtm))
+plot(sort(freq, decreasing = T),col="blue",main="Word frequencies", xlab="Words", ylab = "TF")
+
+# Top 10 Words 
+high.freq=tail(sort(freq),n=10)
+hfp.df=as.data.frame(sort(high.freq))
+hfp.df$names <- rownames(hfp.df)
+ggplot(hfp.df, aes(reorder(names,high.freq), high.freq)) +
+  geom_bar(stat="identity") + coord_flip() + 
+  xlab("Terms") + ylab("Frequency") +
+  ggtitle("Term frequencies")
 ```
 
 
