@@ -21,7 +21,39 @@ installNewPackage <- function(packageName) {
         }
 }
 
+installNewPackage("ROCR")
+installNewPackage("plyr")
+installNewPackage("caret")
+installNewPackage("pROC")
+installNewPackage("ggplot2")
+installNewPackage("tidyr")
+installNewPackage("caTools")
+installNewPackage("class")
+installNewPackage("MLmetrics")
+installNewPackage("rpart")
+installNewPackage("rpart.plot")
+installNewPackage("rattle")
+installNewPackage("randomForest")
+installNewPackage("e1071")
+installNewPackage("TSA")
+installNewPackage("forecast")
 
+library(ROCR)
+library(plyr)
+library(caret)
+library(pROC)
+library(ggplot2)
+library(tidyr)
+library(caTools)
+library(class)
+library(MLmetrics)
+library(rpart)
+library(rpart.plot)
+library(rattle)
+library(randomForest)
+library(e1071)
+library(TSA)
+library(forecast)
 ```
 
 #### Chicago Divvy Bikes 
@@ -157,7 +189,75 @@ missed_station_nameq3q4 <- data.frame(q1_repeat_station, q1_repeat_station1)
 ```
 
 ```{r}
+# Setting the seed for reproduciablility
+set.seed(294)
 
+# NO of fold
+k_fold <- 10
+
+# Creating the folds variable in the data frame
+# music$folds <- createFolds(music$Top10, k = n_fold, list = FALSE)
+cv_index_list <- createFolds(divvy$usertype, k = k_fold, list = TRUE, returnTrain = FALSE)
+
+
+
+# Intailize variables
+total_acc <- c()
+total_error_rate <- c()
+total_AUC <- c()
+
+# Running the Naive bayes with 10 - fold cross validation
+# Accuracy, error, AUC are rounded off to two decimal points
+naiveBayesModel <- function() {
+    for(fold in 1:k_fold) {
+        train_set <- divvy[-cv_index_list[[fold]], ] 
+        test_set <- divvy[cv_index_list[[fold]], ] 
+        
+        # Fitting the Naive bayes model
+        nb_fit <- naiveBayes(usertype ~ trip_id+quarter+gender+birthyear, data = train_set)
+        
+        # Calculating Accuracy. Error, AUC
+        test_prediction <- predict(nb_fit, test_set, type = "class")
+        
+        accuracy <- round(Accuracy(test_prediction, test_set$usertype), 2)
+        error_rate <- 1 - accuracy
+        AUC <- round(AUC(test_prediction, test_set$usertype), 2)
+        total_acc <- c(total_acc, accuracy)
+        total_error_rate <- c(total_error_rate, error_rate)
+        total_AUC <- c(total_AUC, AUC)
+    }
+    
+    report <- data.frame(Fold = c(1:10), Accuracy = total_acc, Error_rate = total_error_rate, AUC = total_AUC)
+    print(report)
+    cat("==========================================================\n")
+    print(paste("Overall accuracy is", round(sum(total_acc) / k_fold, 2), sep = " "))
+    print(paste("Overall error is", round(sum(total_error_rate) / k_fold, 2), sep =" "))
+    print(paste("Overall area under the curve(AUC) is", round(sum(total_AUC) / k_fold, 2), sep = " "))
+    cat("\n==========================================================\n")
+}
+naiveBayesModel()
+```
+
+```{r Time Series model for Average Trip Duration}
+ts_trip_duration <- data.frame(cbind(unlist(lapply(strsplit(as.character(divvy$starttime), "/"), function(x) paste0(x[1],"/",x[2]))),divvy$tripduration))
+ts_trip_duration$X1 <- as.character(ts_trip_duration$X1)
+ts_trip_duration$X2 <- as.numeric(ts_trip_duration$X2)
+ts_trip_duration <- aggregate(ts_trip_duration$X2,list(ts_trip_duration$X1),mean)
+colnames(ts_trip_duration) <- c("Date","trip_duration")
+ts_trip_duration$Date <- unlist(lapply(strsplit(as.character(ts_trip_duration$Date),"/"),function(x) x[1]))
+ts_trip_duration$Date <- sort(as.numeric(ts_trip_duration$Date))
+
+# Converting to Time Series Model
+date=c(2016,1,1)
+ts_model1 <- ts(ts_trip_duration[,2],start=date,frequency=365.25)
+plot(ts_model1,ylab = "Average Trip Duration",xlab = "Days",main = "Time Series model of Average Trip Duration for 2016")
+
+# Forecasting
+train_msts <- msts(data = ts_model1,seasonal.periods = c(31,365.25))
+model <- tbats(train_msts)
+
+# Forecast for 2017
+plot(model$fitted.values)
 ```
 
 
