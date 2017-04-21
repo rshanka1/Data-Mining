@@ -691,10 +691,40 @@ for(i in 1:k_fold) {
     print(paste("Class Label(3)", round(class3_prop, 3), sep = " "))
 }
 
+# Function to calculate sensitivity
+mySensitivity <- function(matrix) {
+    value <- c()
+    seq <- 1:nrow(matrix)
+    for(i in seq) {
+        den_seq <- seq[seq != i]
+        B <- matrix[den_seq[1], i] + matrix[den_seq[2], i]
+        value <- c(value, matrix[i, i] / (matrix[i, i] + B))
+    }
+    value
+}
+
+
+# Function to calculate sensitivity
+mySpecificity <- function(matrix) {
+    value <- c()
+    seq <- 1:nrow(matrix)
+    for(i in seq) {
+        den_seq <- seq[seq != i]
+        TN <- matrix[den_seq[1], den_seq[1]] + matrix[den_seq[2], den_seq[2]]
+        FP <- matrix[i, den_seq[1]] + matrix[i, den_seq[2]]
+        value <- c(value, TN / (TN + FP))
+    }
+    value
+}
+
 # Intailize variables
 total_acc <- c()
-total_error_rate <- c()
-total_AUC <- c()
+class_1_sensitivity <- c()
+class_2_sensitivity <- c()
+class_3_sensitivity <- c()
+class_1_specificity <- c()
+class_2_specificity <- c()
+class_3_specificity <- c()
 
 # Running the Naive bayes with 10 - fold cross validation
 # Accuracy, error, AUC are rounded off to two decimal points
@@ -706,24 +736,36 @@ naiveBayesModel <- function() {
         # Fitting the Naive bayes model
         nb_fit <- naiveBayes(as.factor(Type) ~ ., data = train_set, laplace = 1)
         
-        # Calculating Accuracy. Error, AUC
+        # Calculating Accuracy. Sensitivity, Specificity
         test_prediction <- predict(nb_fit, test_set, type = "class")
+        type <- as.numeric(test_set$Type)
         
         accuracy <- round(Accuracy(test_prediction, test_set$Type), 2)
-        error_rate <- 1 - accuracy
-        AUC <- round(AUC(test_prediction, test_set$Type), 2)
         total_acc <- c(total_acc, accuracy)
-        total_error_rate <- c(total_error_rate, error_rate)
-        total_AUC <- c(total_AUC, AUC)
+        
+        conf_matrix <- table(factor(test_prediction, levels=min(type):max(type)), 
+                             factor(test_set$Type, levels = min(type):max(type)))
+        sensitivity <- mySensitivity(conf_matrix)
+        class_1_sensitivity <- c(class_1_sensitivity, sensitivity[1])
+        class_2_sensitivity <- c(class_2_sensitivity, sensitivity[2])
+        class_3_sensitivity <- c(class_3_sensitivity, sensitivity[3])
+        
+        specificity <- mySpecificity(conf_matrix)
+        class_1_specificity <- c(class_1_specificity, specificity[1])
+        class_2_specificity <- c(class_2_specificity, specificity[2])
+        class_3_specificity <- c(class_3_specificity, specificity[3])
     }
     
-    report <- data.frame(Fold = c(1:10), Accuracy = total_acc, Error_rate = total_error_rate, AUC = total_AUC)
+    report <- data.frame(Fold = c(1:10), Accuracy = total_acc, Class_1_Sensitivity = class_1_sensitivity, Class_2_Sensitivity = class_2_sensitivity, Class_3_Sensitivity = class_3_sensitivity, Class_1_Specificity = class_1_specificity, Class_2_Specificity = class_2_specificity, Class_2_Specificity = class_3_specificity)
     print(report)
-    cat("==========================================================\n")
-    print(paste("Overall accuracy is", round(sum(total_acc) / k_fold, 2), sep = " "))
-    print(paste("Overall error is", round(sum(total_error_rate) / k_fold, 2), sep =" "))
-    print(paste("Overall area under the curve(AUC) is", round(sum(total_AUC) / k_fold, 2), sep = " "))
-    cat("\n==========================================================\n")
+    print("Overall")
+    print(paste("Accuracy is", round(sum(total_acc) / k_fold, 2), sep = " "))
+    print(paste("Class 1 Sensitivity is", round(sum(class_1_sensitivity) / k_fold, 2), sep = " "))
+    print(paste("Class 2 Sensitivity is", round(sum(class_2_sensitivity) / k_fold, 2), sep = " "))
+    print(paste("Class 3 Sensitivity is", round(sum(class_3_sensitivity) / k_fold, 2), sep = " "))
+    print(paste("Class 1 Specificity is", round(sum(class_1_specificity) / k_fold, 2), sep = " "))
+    print(paste("Class 2 Specificity is", round(sum(class_2_specificity) / k_fold, 2), sep = " "))
+    print(paste("Class 3 Specificity is", round(sum(class_3_specificity) / k_fold, 2), sep = " "))
 }
 naiveBayesModel()
 ```
@@ -876,9 +918,9 @@ trump <- prob_speeches_bern(5)
 trump <- c(trump, ifelse(trump[1] > trump[2], "D", "R"))
 
 data.frame(party = c("D", "R", "Prediction"), kennedy, clinton, bush, obama, trump)
-
 ```
 
+**The classifier assigns the document to the party which has highest P(Class | Document) value.**
 
 #### Question 3ciii
 
@@ -923,6 +965,7 @@ trump <- c(trump, ifelse(trump[1] > trump[2], "D", "R"))
 data.frame(party = c("D", "R", "Prediction"), kennedy, clinton, bush, obama, trump)
 ```
 
+**The classifier assigns the document to the party which has highest P(Class | Document) value.**
 
 #### Question 3d
 
@@ -973,6 +1016,7 @@ trump <- c(trump, ifelse(trump[1] > trump[2], "D", "R"))
 data.frame(party = c("D", "R", "Prediction"), kennedy, clinton, bush, obama, trump)
 ```
 
+**The classifier assigns the document to the party which has highest P(Class | Document) value.**
 
 ```{r Multinomial}
 # Multinomial
@@ -993,6 +1037,8 @@ trump <- c(trump, ifelse(trump[1] > trump[2], "D", "R"))
 data.frame(party = c("D", "R", "Prediction"), kennedy, clinton, bush, obama, trump)
 ```
 
+**The classifier assigns the document to the party which has highest P(Class | Document) value.**
+
 #### Question 4
 
 (4 points (bonus)) Look at additional analysis and visualization of the State of the Union Addresses (more complex examples will receive the full amount of bonus points). For example, 
@@ -1003,7 +1049,7 @@ data.frame(party = c("D", "R", "Prediction"), kennedy, clinton, bush, obama, tru
 
 ```{r Question4}
 # Term Frequency
-freq = colSums(as.matrix(dtm))
+freq <- colSums(as.matrix(dtm))
 plot(sort(freq, decreasing = T),col="blue",main="Word frequencies", xlab="Words", ylab = "TF")
 
 # Top 10 Words 

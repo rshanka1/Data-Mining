@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Part 1: Answer by Hand
 
-For the firrst four problems you do not need to use R/Matlab/Python, rather this is showing you understand definitions, concepts, and how the algorithms work.
+For the first four problems you do not need to use R/Matlab/Python, rather this is showing you understand definitions, concepts, and how the algorithms work.
 
 #### Question 1
 
@@ -27,17 +27,50 @@ Doc 3: fat, rat, mat, pat, sat, cat
 
 (4 points) Construct the Term Document Matrix
 
+|   | Doc 1  | Doc 2  |  Doc 3 |
+|---|---|---|---|---|
+| bat  | 1  | 3  | 0  |
+| cat  | 3  | 0  | 1  |
+| fat  | 1  | 0  | 1  |
+| mat  | 0  | 1  | 1  |
+| pat  | 0  | 1  | 1  |
+| rat  | 1  | 1  | 1  |
+| sat  | 0  | 0  | 1  |
 
 #### Question 1b
 
 (6 points) Construct the TF-IDF Matrix
+
+Lets find the IDF value by using log10(N/dft)
+
+|   | Doc 1  | Doc 2  |  Doc 3 | IDF |
+|---|---|---|---|---|---|
+| bat  | 1  | 3  | 0  | 0.176 |
+| cat  | 3  | 0  | 1  | 0.176 |
+| fat  | 1  | 0  | 1  | 0.176 |
+| mat  | 0  | 1  | 1  | 0.176 |
+| pat  | 0  | 1  | 1  | 0.176 |
+| rat  | 1  | 1  | 1  | 0 |
+| sat  | 0  | 0  | 1  | 0.477 |
+
+Now on multiplyting the term frequency with IDF we get TF-IDF matrix which is shown below
+
+|   | Doc 1  | Doc 2  |  Doc 3 |
+|---|---|---|---|---|
+| bat  | 0.176  | 0.528  | 0  |
+| cat  | 0.528  | 0  | 0.176  |
+| fat  | 0.176  | 0  | 0.176  |
+| mat  | 0  | 0.176  | 0.176  |
+| pat  | 0  | 0.176  | 0.176  |
+| rat  | 0  | 0  | 0  |
+| sat  | 0  | 0  | 0.477  |
 
 
 #### Question 1c
 
 (2 points) What is the term-document pair(s) with the highest TF-IDF value.
 
-
+**The paris of (bat, Doc2) and (cat, Doc1) have the highest TF-IDF value**
 
 #### Question 2
 
@@ -56,15 +89,132 @@ Consider the following ratings matrix:
 
 (6 points) Fill in the missing rating for Dana using user-based collaborative filtering with k = 2 nearest neighbors using Manhattan distance to compare users. Indicate which other users are closest to Dana and the resulting rating calculated (use simple averaging of nearest neighbors).
 
+**In order to find the missing rating using user-based collaborative filtering we need to know the distance(manhattan) with the neighbors for the missing user**
+
+Manhattan: Take the sum of the absolute values of the differences of the coordinates.
+
+For example, if x=(a,b)x=(a,b) and y=(c,d)y=(c,d), the Manhattan distance between xx and yy is
+
+|a???c|+|b???d||a???c|+|b???d|
+
+**Ann ~ Diana**
+
+Distance between Ann and Diana = |3 - 3| + |5 - 4.5| + |3.5 - 2.5|
+
+= 0 + 0.5 + 1 
+
+= 1.5
+
+**Ben ~ Diana**
+
+Distance between Ben and Diana = |2 - 3| + |3 - 4| + |3 - 2.5|
+
+= 1 + 1.5 + 0.5
+
+= 3
+
+**Chris ~ Diana**
+
+Distance between Chris and Diana = |2.5 - 3| + |4 - 4.5| + |4 - 2.5|
+
+= 0.5 + 0.5 + 1.5
+
+= 2.5
+
+From the above calculations it looks like chris and ben are the two closest neighboors to Diana. So the missing rating will be average of ratings of both Chris and Ben. ie) (5+4)/2 = 4.5
+
+|   | Avengers  | Iron Man 3  |  The Dark Knight Rises | Captain America 2  |
+|---|---|---|---|---|
+| Ann  | 3.5  | 3  | 5  | 3.5   |
+| Ben  |  5 |  2 | 3  | 3  |
+| Chris  | 4  | 2.5  | 4  | 4  |
+| Dana  | <b>4.5</b>  | 3  | 4.5  | 2.5  |
+
 
 #### Question 2b
 
-Fill in the missing rating using item-based collaborative filtering with k = 2 nearest neighbors using Manhattan distance to compare items. Indicate which other items are closest to Avengers and the resulting rating calculated (use simple averaging of nearest neighbors).
+(6 points) Fill in the missing rating using item-based collaborative filtering with k = 2 nearest neighbors using Manhattan distance to compare items. Indicate which other items are closest to Avengers and the resulting rating calculated (use simple averaging of nearest neighbors).
+
+
+**In order to find the missing rating using item-based collaborative filtering we need to know the distance(manhattan) with the neighbors for the missing item**
+
+Manhattan: Take the sum of the absolute values of the differences of the coordinates.
+
+For example, if x=(a,b)x=(a,b) and y=(c,d)y=(c,d), the Manhattan distance between xx and yy is
+
+|a???c|+|b???d||a???c|+|b???d|
+
+**Iron Man 3 ~ Avengers**
+
+Distance between Iron Man 3 and Avengers = |3 - 3.5| + |2 - 5| + |2.5 - 4|
+
+= 0.5 + 3 + 1.5 
+
+= 5
+
+**The Dark Knight Rises ~ Avengers**
+
+Distance between The Dark Knight Rises and Avengers = |5 - 3.5| + |3 - 5| + |4 - 4|
+
+= 1.5 + 2 + 0
+
+= 3.5
+
+**Captain America 2 ~ Avengers**
+
+Distance between Captain America 2 and Avengers = |3.5 - 3.5| + |3 - 5| + |4 - 4|
+
+= 0 + 2 + 0
+
+= 2
+
+From the above calculations it looks like Ironman 3 and The Dark Knight Rises are the two closest neighboors to Avengers. So the missing rating will be average of ratings of both Ironman 3 and The Dark Knight Rises. ie) (3+4.5)/2 = 3.75
+
+|   | Avengers  | Iron Man 3  |  The Dark Knight Rises | Captain America 2  |
+|---|---|---|---|---|
+| Ann  | 3.5  | 3  | 5  | 3.5   |
+| Ben  |  5 |  2 | 3  | 3  |
+| Chris  | 4  | 2.5  | 4  | 4  |
+| Dana  | <b>3.75</b>  | 3  | 4.5  | 2.5  |
 
 
 #### Question 2c
 
 (4 points (bonus)) Calculate the missing rating same as above, but incorporate the similarity measure (distance measure) into the prediction. Because Manhattan distance was used rather than similarity convert it to a similarity with the following process normalize the distance between min-distance = 0 and max-distance = 3*(5-1) = 12; then subtract this value from 1 to get a similarity score.
+
+##### User-based
+
+| User Pairs| Manhattan Distance | Norm | Similarity |
+|-----------|--------------------|------|------------|
+|Ann ~ Diana|   1.5 |   0.125   |   0.875   |
+|Ben ~ Diana|   3   |   0.25    |   0.75    |
+|Chris ~ Diana| 2.5 |   0.208   |   0.792   |
+
+From the above table we can see that Ann and chris have high similarity towards Diana. So the missing rating will average of Ann and Chris rating. ie) (3.5 + 4)/2 = 3.75
+
+|   | Avengers  | Iron Man 3  |  The Dark Knight Rises | Captain America 2  |
+|---|---|---|---|---|
+| Ann  | 3.5  | 3  | 5  | 3.5   |
+| Ben  |  5 |  2 | 3  | 3  |
+| Chris  | 4  | 2.5  | 4  | 4  |
+| Dana  | <b>3.75</b>  | 3  | 4.5  | 2.5  |
+
+##### Item-based 
+
+| User Pairs| Manhattan Distance | Norm | Similarity |
+|-----------|--------------------|------|------------|
+|Iron Man 3 ~ Avengers|   5     |   0.417   |   0.583   |
+|The Dark Knight Rises ~ Avengers|   3.5   |   0.292    |   0.708    |
+|Captain America 2 ~ Avengers| 2.5 |   0.208   |    0.792  |
+
+From the above table we can see that The Dark Knight Rises and Captain America 2 have high similarity towards Avengers. So the missing rating will average of The Dark Knight Rises and Captain America 2. ie) (4.5 + 2.5)/2 = 3.5
+
+|   | Avengers  | Iron Man 3  |  The Dark Knight Rises | Captain America 2  |
+|---|---|---|---|---|
+| Ann  | 3.5  | 3  | 5  | 3.5   |
+| Ben  |  5 |  2 | 3  | 3  |
+| Chris  | 4  | 2.5  | 4  | 4  |
+| Dana  | <b>3.5</b>  | 3  | 4.5  | 2.5  |
 
 
 ### Association Analysis I
@@ -105,12 +255,12 @@ Given a database of transactions and a min-support = 2,
 
 #### Question 3e
 
-(8 points) For the association rule I1???? > I6, compute the support, condence, lift, and interest
+(8 points) For the association rule I1 -> I6, compute the support, confidence, lift, and interest
 
 
 #### Question 4
 
-### Data Mining Book: 6.6
+**Data Mining Book: 6.6**
 
 For each algorithm, show the major steps through the algorithm. Also, report at the end the frequent items sets identified.
 

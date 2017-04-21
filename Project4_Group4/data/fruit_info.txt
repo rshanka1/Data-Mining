@@ -20,3 +20,26 @@ Width (cm)
   2 - if width > 7.8
   1 - if width <= 7.8 && >7.3
   0 - otherwise
+
+  2 1 1 1 1 3 3 1 3 2 3 3 3 3
+  2 1 1 1 1 3 3 1 3 2 3 3 3 3
+  2 1 1 1 1 3 3 1 3 2 3 3 3 3
+  
+  
+  function(v, ndata, predictors, model) {
+            nd <- ndata[predictors[v]]
+            if(is.na(nd)) {
+                rep(1, length(model$priorProb)) 
+            }
+            else {
+                prob <- if (isnumeric[predictors[v]]) {
+                    msd <- model$condProb[[v]]
+                    msd[, 2][msd[, 2] <= 0] <- 0.001
+                    dnorm(nd, msd[, 1], msd[, 2])
+                } else {
+                    model$condProb[[v]][, nd + islogical[predictors[v]]]
+                }
+                prob[prob <= 0] <- 0.001
+                prob
+            }
+            }
