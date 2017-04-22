@@ -9,6 +9,24 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r include=FALSE}
+# installing the packages
+# Function to Install packages
+# checks the available.packages before
+installNewPackage <- function(packageName) {
+        if(packageName  %in% rownames(installed.packages()) == FALSE)
+        {
+                install.packages(packageName, repos = "http://cran.us.r-project.org", dependencies=TRUE)
+        }
+}
+
+installNewPackage("arules")
+installNewPackage("arulesViz")
+
+library(arules)
+library(arulesViz)
+```
+
 ## Part 1: Answer by Hand
 
 For the first four problems you do not need to use R/Matlab/Python, rather this is showing you understand definitions, concepts, and how the algorithms work.
@@ -45,25 +63,25 @@ Lets find the IDF value by using log10(N/dft)
 
 |   | Doc 1  | Doc 2  |  Doc 3 | IDF |
 |---|---|---|---|---|---|
-| bat  | 1  | 3  | 0  | 0.176 |
-| cat  | 3  | 0  | 1  | 0.176 |
-| fat  | 1  | 0  | 1  | 0.176 |
-| mat  | 0  | 1  | 1  | 0.176 |
-| pat  | 0  | 1  | 1  | 0.176 |
+| bat  | 1  | 3  | 0  | 0.029 |
+| cat  | 3  | 0  | 1  | 0.029 |
+| fat  | 1  | 0  | 1  | 0.029 |
+| mat  | 0  | 1  | 1  | 0.029 |
+| pat  | 0  | 1  | 1  | 0.029 |
 | rat  | 1  | 1  | 1  | 0 |
-| sat  | 0  | 0  | 1  | 0.477 |
+| sat  | 0  | 0  | 1  | 0.0795 |
 
-Now on multiplyting the term frequency with IDF we get TF-IDF matrix which is shown below
+Now on multiplyting the probability of term frequency with IDF we get TF-IDF matrix which is shown below
 
 |   | Doc 1  | Doc 2  |  Doc 3 |
 |---|---|---|---|---|
-| bat  | 0.176  | 0.528  | 0  |
-| cat  | 0.528  | 0  | 0.176  |
-| fat  | 0.176  | 0  | 0.176  |
-| mat  | 0  | 0.176  | 0.176  |
-| pat  | 0  | 0.176  | 0.176  |
+| bat  | 0.029  | 0.088  | 0  |
+| cat  | 0.088  | 0  | 0.029  |
+| fat  | 0.029  | 0  | 0.029  |
+| mat  | 0  | 0.029  | 0.029  |
+| pat  | 0  | 0.029  | 0.029  |
 | rat  | 0  | 0  | 0  |
-| sat  | 0  | 0  | 0.477  |
+| sat  | 0  | 0  | 0.0795  |
 
 
 #### Question 1c
@@ -121,14 +139,14 @@ Distance between Chris and Diana = |2.5 - 3| + |4 - 4.5| + |4 - 2.5|
 
 = 2.5
 
-From the above calculations it looks like chris and ben are the two closest neighboors to Diana. So the missing rating will be average of ratings of both Chris and Ben. ie) (5+4)/2 = 4.5
+From the above calculations it looks like Chris and Ann are the two closest neighboors to Diana. So the missing rating will be average of ratings of both Chris and Ann ie) (3.5 + 4)/2 = 3.75
 
 |   | Avengers  | Iron Man 3  |  The Dark Knight Rises | Captain America 2  |
 |---|---|---|---|---|
 | Ann  | 3.5  | 3  | 5  | 3.5   |
 | Ben  |  5 |  2 | 3  | 3  |
 | Chris  | 4  | 2.5  | 4  | 4  |
-| Dana  | <b>4.5</b>  | 3  | 4.5  | 2.5  |
+| Dana  | <b>3.75</b>  | 3  | 4.5  | 2.5  |
 
 
 #### Question 2b
@@ -168,14 +186,14 @@ Distance between Captain America 2 and Avengers = |3.5 - 3.5| + |3 - 5| + |4 - 4
 
 = 2
 
-From the above calculations it looks like Ironman 3 and The Dark Knight Rises are the two closest neighboors to Avengers. So the missing rating will be average of ratings of both Ironman 3 and The Dark Knight Rises. ie) (3+4.5)/2 = 3.75
+From the above calculations it looks like Captain America 2 and The Dark Knight Rises are the two closest neighboors to Avengers. So the missing rating will be average of ratings of both Captain America 2 and The Dark Knight Rises. ie) (2.5 + 4.5)/2 = 3.5
 
 |   | Avengers  | Iron Man 3  |  The Dark Knight Rises | Captain America 2  |
 |---|---|---|---|---|
 | Ann  | 3.5  | 3  | 5  | 3.5   |
 | Ben  |  5 |  2 | 3  | 3  |
 | Chris  | 4  | 2.5  | 4  | 4  |
-| Dana  | <b>3.75</b>  | 3  | 4.5  | 2.5  |
+| Dana  | <b>3.5</b>  | 3  | 4.5  | 2.5  |
 
 
 #### Question 2c
@@ -190,31 +208,31 @@ From the above calculations it looks like Ironman 3 and The Dark Knight Rises ar
 |Ben ~ Diana|   3   |   0.25    |   0.75    |
 |Chris ~ Diana| 2.5 |   0.208   |   0.792   |
 
-From the above table we can see that Ann and chris have high similarity towards Diana. So the missing rating will average of Ann and Chris rating. ie) (3.5 + 4)/2 = 3.75
+From the above table we can see that Ann and chris have high similarity towards Diana. So the missing rating will average of Ann and Chris rating. ie) ((3.5\*0.875) + (4\*0.792))/(0.875+0.792) = 3.74
 
 |   | Avengers  | Iron Man 3  |  The Dark Knight Rises | Captain America 2  |
 |---|---|---|---|---|
 | Ann  | 3.5  | 3  | 5  | 3.5   |
 | Ben  |  5 |  2 | 3  | 3  |
 | Chris  | 4  | 2.5  | 4  | 4  |
-| Dana  | <b>3.75</b>  | 3  | 4.5  | 2.5  |
+| Dana  | <b>3.74</b>  | 3  | 4.5  | 2.5  |
 
 ##### Item-based 
 
-| User Pairs| Manhattan Distance | Norm | Similarity |
+| Items Pairs| Manhattan Distance | Norm | Similarity |
 |-----------|--------------------|------|------------|
 |Iron Man 3 ~ Avengers|   5     |   0.417   |   0.583   |
 |The Dark Knight Rises ~ Avengers|   3.5   |   0.292    |   0.708    |
 |Captain America 2 ~ Avengers| 2.5 |   0.208   |    0.792  |
 
-From the above table we can see that The Dark Knight Rises and Captain America 2 have high similarity towards Avengers. So the missing rating will average of The Dark Knight Rises and Captain America 2. ie) (4.5 + 2.5)/2 = 3.5
+From the above table we can see that The Dark Knight Rises and Captain America 2 have high similarity towards Avengers. So the missing rating will average of The Dark Knight Rises and Captain America 2. ie) ((4.5\*0.708) + (2*0.792))/(0.708 + 0.792) = 3.42
 
 |   | Avengers  | Iron Man 3  |  The Dark Knight Rises | Captain America 2  |
 |---|---|---|---|---|
 | Ann  | 3.5  | 3  | 5  | 3.5   |
 | Ben  |  5 |  2 | 3  | 3  |
 | Chris  | 4  | 2.5  | 4  | 4  |
-| Dana  | <b>3.5</b>  | 3  | 4.5  | 2.5  |
+| Dana  | <b>3.42</b>  | 3  | 4.5  | 2.5  |
 
 
 ### Association Analysis I
@@ -229,21 +247,80 @@ Given a database of transactions and a min-support = 2,
 | T4  | I6, I7, I8  |
 | T5  | I100, I101, I102, I103  |
 
+**Preprocessing**
+
+|Items | Support|
+|------|--------|
+|   I1 | 3  |
+|   I2 | 3  |
+|   I3 | 3  |
+|   I4 | 3  |
+|   I5 | 3  |
+|   I6 | 3  |
+|   I7 | 3  |
+|   I8 | 3  |
+|   I9 | 1  |
+|   I10 | 1  |
+|   I100 | 1  |
+|   I101 | 1  |
+|   I102 | 1  |
+|   I103 | 1  |
+
+** After removing the patterns with support less than 2**
+
+|   Items | Support |
+|---------|---------|
+|   I1 | 3  |
+|   I2 | 3  |
+|   I3 | 3  |
+|   I4 | 3  |
+|   I5 | 3  |
+|   I6 | 3  |
+|   I7 | 3  |
+|   I8 | 3  |
+
+
+| Trans.  | Items  |    ordered Items|
+|---------|--------|-----------------|
+| T1  | I1, I2, I3, I4, I5, I6, I7, I8, I9, I10  |  I1, I2, I3, I4, I5, I6, I7, I8  |
+| T2  | I1, I2, I3, I4, I5, I6, I7, I8           |  I1, I2, I3, I4, I5, I6, I7, I8  |
+| T3  | I1, I2, I3, I4, I5                       |  I1, I2, I3, I4, I5  |
+| T4  | I6, I7, I8                               |    I6, I7, I8    |
+| T5  | I100, I101, I102, I103                   |          |
+
+From the count of ordered items
+
+I1 = 3
+I2 = 3
+I3 = 3
+I4 = 3
+I5 = 3
+I6 = 3
+I7 = 3
+I8 = 3
+
+And the FP Tree is 
+
+![](Q3 FP Tree.png)
+
+
 #### Question 3a
 
 (1 point) How many frequent patterns exist?
 
-
+The frequency pattern is 2^8 - 1 = 255.
 
 #### Question 3b
 
 (3 points) What is the set of frequent closed patterns?
 
+Closed set: \<I1,I2,I3,I4,I5\> and \<I6,I7,I8\> are closed pattern.
 
 #### Question 3c
 
 (2 points) What is the set of frequent max-patterns?
 
+The frequency max patterns is \<I1, I2, I3, I4, I5, I6, I7, I8\>.
 
 #### Question 3d
 
@@ -251,11 +328,31 @@ Given a database of transactions and a min-support = 2,
 
 <center>(I1, I2, I3, I4, IX -> IY )</center>
 
+Lets substitute IX = I7 and IY = I8
 
+(I1,I2,I3,I4,I7 -> I8)
+
+Support is 3 for all items, so min-support condition satisfies
+
+Conf = Support((I1,I2,I3,I4,I7),I6)/Support(I1,I2,I3,I4,I7) = 2/2 = 1 i.e 100%
+
+Above association satisify the conditions of support and confidence.
 
 #### Question 3e
 
 (8 points) For the association rule I1 -> I6, compute the support, confidence, lift, and interest
+
+Support(I1) = 3 , Support(I1,I6) = 2, Support(I6) = 3
+
+Conf = Support(I1,I6)/Support(I1) 
+    = 2/3 
+    = 0.66
+
+Lift(I1,I6) = conf(I1 -> 16)/Support(I6) = (2/3)/(3) = 0.22  (negatively correlated)
+
+Interest = Lift(I1,I6)/P(I1)P(I6) 
+        = 0.22/{(3/5) * (3/5)} 
+        =  0.22/0.36 = 0.611
 
 
 #### Question 4
@@ -268,11 +365,104 @@ For each algorithm, show the major steps through the algorithm. Also, report at 
 
 (24 points) For Apriori, present Li and Ci for each level i considered
 
+$$C_1$$
+
+|   Item set    |   sup     |
+|---------------|-----------|
+|   <B>{M}</B> |   <B>3</B>   |
+|   <B>{O}</B> |   <B>3</B>   |
+|   {N} |   2   |
+|   <B>{K}</B> |   <B>5</B>   |
+|   <B>{E}</B> |   <B>4</B>   |
+|   <B>{Y}</B> |   <B>3</B>   |
+|   {D} |   1   |
+|   {A} |   1   |
+|   {U} |   1   |
+|   {C} |   2   |
+|   {I} |   1   |
+
+$$L_1$$
+
+|   Item set    |   sup     |
+|---------------|-----------|
+|   {M} |   3   |
+|   {O} |   3   |
+|   {K} |   5   |
+|   {E} |   4   |
+|   {Y} |   3   |
+
+$$C_2$$
+
+|   Item set    |   sup     |
+|---------------|-----------|
+|   {M, O} |   1   |
+|   <B>{M, K}</B> |   <B>3</B>   |
+|   {M, E} |   2   |
+|   {M, Y} |   2   |
+|   <B>{O, K}</B> |   <B>3</B>   |
+|   <B>{O, E}</B> |   <B>3</B>   |
+|   {O, Y} |   2   |
+|   <B>{K, E}</B> |   <B>4</B>   |
+|   <B>{K, Y}</B> |   <B>3</B>   |
+|   {E, Y} |   2   |
+
+$$L_2$$
+
+|   Item set    |   sup     |
+|---------------|-----------|
+|   {M, K} |   3   |
+|   {O, K} |   3   |
+|   {O, E} |   3   |
+|   {K, E} |   4   |
+|   {K, Y} |   3   |
+
+$$C_3$$
+
+|   Item set    |   sup     |
+|---------------|-----------|
+|   {M, K, E} |   2   |
+|   {M, K, O} |   1   |
+|   {M, K, Y} |   2   |
+|   <B>{K, O, E}</B> |   <B>3</B>   |
+|   {O, K, Y} |   2   |
+|   {O, E, Y} |   2   |
+|   {K, E, Y} |   2   |
+
+$$L_3$$
+
+|   Item set    |   sup     |
+|---------------|-----------|
+|   {K, O, E} |   3   |
+
+#### Frequent Sets
+
+* {M}
+* {O}
+* {K}
+* {E}
+* {Y}
+* {M, K}
+* {O, K}
+* {O, E}
+* {K, E}
+* {K, Y}
+* {K, O, E}
 
 #### Question 4b
 
-(b) (22 points) For FP-growth, present the FP-tree like Fig. 6.7 (p. 258) and present the generated the frequent patterns like Table 6.2 (p. 259) (the conditional FP-trees do not need to be illustrated explicitly).
+(22 points) For FP-growth, present the FP-tree like Fig. 6.7 (p. 258) and present the generated the frequent patterns like Table 6.2 (p. 259) (the conditional FP-trees do not need to be illustrated explicitly).
 
+![](T4b Tree.png)
+
+
+**Frequency Pattern**
+
+|   Itemset  |   Frequency pattern  |
+|------------|----------------------|
+|   Y   |   {K, Y : 3}, {E, Y : 2}, {K, E, Y : 2}   |
+|   O   |   {K, O : 3}, {E, O : 3}, {K, E, O : 3}   |
+|   M   |   {K, M : 3}, {E, M : 2}, {K, E, M : 2}   |
+|   E   |   {K : 4} |
 
 ## Part 2: Use Software
 
@@ -285,7 +475,11 @@ understand definitions, concepts, and how the algorithms work.
 available or Matlab has the Association Rules package available from File Exchange.
 
 ```{r Question5}
-
+transactions <- read.transactions(file = "transaction.txt", rm.duplicates = FALSE, 
+                                  format = "basket", sep = ",")
+inspect(transactions)
+fsets <- eclat(transactions, parameter = list(supp = 0.6))
+inspect(fsets)
 ```
 
 **End of the assignment**
