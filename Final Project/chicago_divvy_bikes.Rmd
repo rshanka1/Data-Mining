@@ -1,5 +1,5 @@
 ---
-title: "Machine Learning application - Chicago Divvy Bikes"
+title: "Analyzing and predicting the trend of Divvy bikes - Chicago"
 author: "Nishanth Gandhidoss, Raghavendran Shankar"
 date: "21 March 2017"
 output: html_document
@@ -37,6 +37,7 @@ installNewPackage("randomForest")
 installNewPackage("e1071")
 installNewPackage("TSA")
 installNewPackage("forecast")
+installNewPackage("adabag")
 
 library(ROCR)
 library(plyr)
@@ -54,15 +55,16 @@ library(randomForest)
 library(e1071)
 library(TSA)
 library(forecast)
+library(adabag)
 ```
 
 #### Chicago Divvy Bikes 
 
-**Write something about divvy bikes.**
+Divvy is Chicago's bike share system owned by Chicago Department of Transportation. The reason for Divvy system's arrival is to promote economic recovery, reduce traffic congestion and improve air quality. Divvy bike share system consists of 6,000 bikes available at more than 580 stations across Chicago. It is the first large-scale, solar power bike share system in the world to be created and is portable, wirelessly integrated and sturdy enough to handle the demands of Chicago's urban environment.
 
 #### Loading the dataset
 
-
+The data collected for Divvy consisted of the location of Divvy Station, the number of bikes available at each station as well as suggestion data for new stations. In recent times, the new Divvy data file includes all the anonymized trip data starting from 2013 to 2016 and includes trip start and end date and time, trip start and end station IDs and name, Rider type etc.  
 
 ```{r Loading the data}
 # Loading divvy trip data
@@ -82,7 +84,7 @@ divvy_stations_q4 <- read.csv('data/Divvy_Trips_2016_Q3Q4/Divvy_Stations_2016_Q4
 
 #### Merging the data frame
 
-
+The data downloaded is a combination of trips and stations details for the year of 2016 in the form of six different files. To make the analysis easier, a decision to make the six files has put to various techniques to come up with a single data file which can be used for further processing. Using data merge and feature creation, the final data frame which has trip and station details for all the quarter as a single data file. has been made.
 
 ```{r Merging the data frame}
 # Combining trip data for 2nd quarter
@@ -130,6 +132,9 @@ divvy_q3q4 <- data.frame(rbind(divvy_q3,divvy_q4))
 divvy <- data.frame(rbind(divvy_q1q2, divvy_q3q4))
 ```
 
+## Introducing Seasonality in the data
+
+The final merged divvy data has a new season variable which describes the season when the trip took place. This variable is derived from the start time.
 
 ```{r Creating Seasonality}
 divvy$month <- unlist(lapply(strsplit(as.character(divvy$starttime), "/"), function(x) x[1]))
@@ -148,47 +153,22 @@ divvy$Season <- factor(divvy$Season)
 table(divvy$Season)
 ```
 
+#### Check for missing values
 
+The divvy data is checked for missing values, and if found, imputation technique is done.
 
 ```{r Verifying for missing values}
 sapply(divvy, function(x) sum(is.na(x)))
 ```
 
+## Classification of users as Subscriber, Customer or dependant
 
-```{r Writing to a csv file}
-if(!file.exists("data/divvy.csv")) {
-    write.csv(divvy, "data/divvy.csv")
-}
-```
+#### Naive Bayes
 
+Naive Bayes classification model is based on Bayes' Theorem with an assumption of independence among predictors. Naive Bayes classifier assumes that the presence of a particular feature in a class is unrelated to the presence of any other feature.  Even if the features depend on each other or upon the existence of the other features, all of these properties independently contribute to the probability of classifying the predictor and that is why it is known as 'Naive'.
+ 
 
-
-
-```{r}
-#dummy check code
-x <- divvy_q1q2$from_station_id[as.character(divvy_q1q2$from_station_name) != as.character(divvy_q1q2$name)]
-unique(x)
-dummy <- divvy_q1q2[divvy_q1q2$from_station_id %in% x, ]
-q1_repeat_station <- unique(dummy$from_station_name)
-q1_repeat_station2 <- unique(dummy$name)
-missed_station_name <- data.frame(q1_repeat_station, q1_repeat_station2)
-q1_repeat_station <- unique(dummy$from_station_name)
-q1_repeat_station1 <- unique(dummy$name)
-missed_station_nameq1q2 <- data.frame(q1_repeat_station, q1_repeat_station1)
-
-
-x <- divvy_q3q4$from_station_id[as.character(divvy_q3q4$from_station_name) != as.character(divvy_q3q4$name)]
-unique(x)
-dummy <- divvy_q3q4[divvy_q3q4$from_station_id %in% x, ]
-q1_repeat_station <- unique(dummy$from_station_name)
-q1_repeat_station2 <- unique(dummy$name)
-missed_station_name <- data.frame(q1_repeat_station, q1_repeat_station2)
-q1_repeat_station <- unique(dummy$from_station_name)
-q1_repeat_station1 <- unique(dummy$name)
-missed_station_nameq3q4 <- data.frame(q1_repeat_station, q1_repeat_station1)
-```
-
-```{r}
+```{r Naive Bayes}
 # Setting the seed for reproduciablility
 set.seed(294)
 
@@ -238,6 +218,85 @@ naiveBayesModel <- function() {
 naiveBayesModel()
 ```
 
+The overall accuracy of Naive Bayes model is found as a mean of accuracies obtained by k-fold cross validation which is 100% for Naive Bayes model generated.
+
+#### Decision Tree
+
+The Decision tree learning uses a decision tree as a predictive model which maps the features like bike usage, trip duration and the age of users represented in branches to conclude about whether the user type is  Subscriber, Customer or dependent. Recursive partitioning technique is done implicitly by decision tree where the nodes split into user types according to the mixture of features.
+
+```{r Decision Tree}
+decisionTree <- function() {
+    
+    for(cp in c(0.01, 0.1)) {
+        
+        # Intailize variables
+        total_acc <- c()
+        total_error_rate <- c()
+        total_AUC <- c()
+        
+        cat("\n")
+        print(paste("Complexity Parameter used is", cp, sep = " "))
+        cat("\n")
+        for(fold in 1:k_fold) {
+            train_set <- divvy[-cv_index_list[[k_fold]], ] 
+            test_set <- divvy[cv_index_list[[k_fold]], ] 
+            
+            tree_fit <- rpart(usertype ~ trip_id+quarter+gender+birthyear, method="class", data = train_set, minsplit = 4, minbucket = 2)
+            fancyRpartPlot(tree_fit, main = paste("After Pruning - Fold #", fold, sep = " "))
+            
+            # # Find cp with minimum Cross validate error from rpart results
+            # min_error_cp <- tree_fit$cptable[which.min(tree_fit$cptable[,"xerror"]), "CP"]
+            # 
+            # # pruning the tree with minimum cross validate error
+            # ptree_fit <- prune(tree_fit, cp = min_error_cp)
+            # plot(ptree_fit, main = paste("After Pruning - Fold #", fold, sep = " "))
+            
+            # Calculating Accuracy. Error, AUC
+            test_prediction <- predict(tree_fit, test_set, type = 'class')
+            accuracy <- round(Accuracy(test_prediction, test_set$usertype), 2)
+            error_rate <- 1 - accuracy
+            AUC <- round(AUC(test_prediction, test_set$usertype), 2)
+            total_acc <- c(total_acc, accuracy)
+            total_error_rate <- c(total_error_rate, error_rate)
+            total_AUC <- c(total_AUC, AUC)
+        }
+    
+        report <- data.frame(Fold = c(1:10), Accuracy = total_acc, Error_rate = total_error_rate, AUC = total_AUC)
+        print(report)
+        cat("==========================================================\n")
+        print(paste("Overall accuracy is", round(sum(total_acc) / k_fold, 2), sep = " "))
+        print(paste("Overall error is", round(sum(total_error_rate) / k_fold, 2), sep =" "))
+        print(paste("Overall area under the curve(AUC) is", round(sum(total_AUC) / k_fold, 2), sep = " "))
+        cat("\n==========================================================\n")
+    }
+}
+decisionTree()
+```
+
+The overall accuracy of decision tree model is found as a mean of accuracies obtained by k-fold cross validation which is 100% for Decision Tree model generated.
+
+#### Clustering
+
+The similarity between the stations is found by clustering stations based on bike usage feature. K-Means clustering is used to group stations as 'k' number of clusters and the optimal number of 'k' value is taken according to the minimal within cluster distance and maximum between cluster distance using the scree plot
+
+```{r K Means Clustering}
+divvy_clust <- divvy[c(6,7,23)]
+# Finding optimal number of clusters
+wss <- list()
+for (i in 1:15) wss[i] <- sum(kmeans(c(divvy_clust$bikeid,divvy_clust$tripduration,divvy_clust$Season),centers=i)$withinss)
+plot(1:15, wss, type="b", xlab="Number of Clusters",ylab="Within groups sum of squares")
+
+# K Means clustering
+km_clust <- kmeans(x = c(divvy_clust$bikeid,divvy_clust$tripduration,divvy_clust$Season),centers = 5)
+km_clust
+```
+
+The maximum between cluster distance shows a well-spaced separation between the clusters. The within sum of square distance drops for k = 5. There are five groups formed based on the clustering model which explains the five different bike usage.
+
+## Time series model for prediction of average trip duration for year 2017
+
+The forecast package uses 'msts' function to convert into time series model of 365-day seasonal period. The 'tbats' function is used to build an arima model. The assumptions such as stationary, zero mean and homoscedasticity, normality and independence must be met for the residual plot of time series data to build an arima model for forecasting the future values for the year 2017.
+
 ```{r Time Series model for Average Trip Duration}
 ts_trip_duration <- data.frame(cbind(unlist(lapply(strsplit(as.character(divvy$starttime), "/"), function(x) paste0(x[1],"/",x[2]))),divvy$tripduration))
 ts_trip_duration$X1 <- as.character(ts_trip_duration$X1)
@@ -252,13 +311,44 @@ date=c(2016,1,1)
 ts_model1 <- ts(ts_trip_duration[,2],start=date,frequency=365.25)
 plot(ts_model1,ylab = "Average Trip Duration",xlab = "Days",main = "Time Series model of Average Trip Duration for 2016")
 
-# Forecasting
+# Model for Daily-based seasonal pattern
 train_msts <- msts(data = ts_model1,seasonal.periods = c(31,365.25))
 model <- tbats(train_msts)
 
+plot(model$errors,main = 'Residual plot of time series model') # Zero Mean and standard varience
+abline(h=0,col=2)
+
+# Check for the following assumptions for time series model for 95% confidence interval
+
+# Stationarity
+adf.test(model$errors)
+pp.test(model$errors)
+
+# Both tests suggests that time series is stationary
+
+# Independence test
+runs(model$errors) # P-value is 0.02 which indicates dependency of residuals on time lag
+
+# Normality test
+qqnorm(model$errors)
+qqline(model$errors)
+shapiro.test(model$errors) # Shaprio test indicates model is not normal as p-value is less than 0.05
+
 # Forecast for 2017
 plot(model$fitted.values)
+mod_fit <- as.data.frame(matrix(model$fitted.values))
+ts_actual <- as.data.frame(matrix(ts_model1))
+val <- cbind(seq.Date(as.Date("2016-01-01"),as.Date("2016-12-31"),by="1 day"),ts_actual,mod_fit)
+
+#if(!file.exists("time_series.csv")) {
+ #   write.csv(val, "time_series.csv")
+#}
+
+#if(!file.exists("residplot.csv")) {
+ #   write.csv(model$errors, "residplot.csv")
+#}
 ```
 
+The residuals of time series data has zero mean and standard variance which indicates homoscedasticity. Though the condition of Normality is not satisfied, the time series is found to be stationary by Augmented-Dickey Fuller test and dependent on the past values through runs test. From the 'msts' and 'tbats' functions, an arima model of order (0,5) i.e MA(5) is built .The predicted values of arima(0,5) model refers to the prediction of average trip duration per day in the year 2017.
 
 **End of Assignment**
